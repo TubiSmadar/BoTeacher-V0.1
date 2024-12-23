@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "126542571884",
+    "project_id": "boteacher-b9652",
+    "storage_bucket": "boteacher-b9652.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:126542571884:android:61cbe79cd750ede9e5eb49",
+        "android_client_info": {
+          "package_name": "com.example.myapplication"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBYX5QQOC4jEskTaRbUdhECp608Po-2Xnk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
