@@ -20,16 +20,17 @@
         android:padding="16dp"
         android:textColor="#FFFFFF" />
 
-    <!-- היסטוריית צ'אט -->
+    <!-- היסטוריית צ'אט עם רקע לבן -->
     <TextView
         android:id="@+id/chatHistoryTextView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-    android:padding="8dp"
-    android:scrollbars="vertical"
-    android:textSize="16sp"
-    android:textColor="#000000" />
+        android:padding="8dp"
+        android:scrollbars="vertical"
+        android:textSize="16sp"
+        android:textColor="#000000"
+        android:background="#FFFFFF" />
 
     <!-- הצגת תמונה -->
     <ImageView

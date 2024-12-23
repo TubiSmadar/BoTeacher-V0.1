@@ -59,6 +59,11 @@
             android:name="com.example.myapplication.LecturerActivity"
             android:exported="true" />
 
+        <!-- Lecturer Courses Activity (New) -->
+        <activity
+            android:name="com.example.myapplication.LecturerCoursesActivity"
+            android:exported="true" />
+
     </application>
 
 </manifest>
