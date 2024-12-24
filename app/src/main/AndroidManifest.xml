@@ -59,9 +59,14 @@
             android:name="com.example.myapplication.LecturerActivity"
             android:exported="true" />
 
-        <!-- Lecturer Courses Activity (New) -->
+        <!-- Lecturer Courses Activity -->
         <activity
             android:name="com.example.myapplication.LecturerCoursesActivity"
+            android:exported="true" />
+
+        <!-- Course Content Activity -->
+        <activity
+            android:name="com.example.myapplication.CourseContentActivity"
             android:exported="true" />
 
     </application>
