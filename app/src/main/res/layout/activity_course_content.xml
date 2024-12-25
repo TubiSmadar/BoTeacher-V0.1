@@ -1,16 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@drawable/background">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#FFFFFF"
         android:orientation="vertical"
         android:padding="16dp">
 
-        <!-- הצגת הערות כלליות -->
+        <!-- הערות כלליות -->
         <TextView
             android:id="@+id/existingNotesView"
             android:layout_width="match_parent"
@@ -21,7 +22,7 @@
             android:textSize="16sp"
             android:layout_marginBottom="16dp" />
 
-        <!-- הזנת הערות כלליות חדשות -->
+        <!-- הזנת הערות כלליות -->
         <EditText
             android:id="@+id/newNotesInput"
             android:layout_width="match_parent"
@@ -37,18 +38,13 @@
             android:text="שמור הערות"
             android:layout_marginBottom="16dp" />
 
-        <!-- רשימת הקבצים שהועלו -->
+        <!-- רשימת קבצים -->
         <TextView
-            android:id="@+id/filesTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingBottom="8dp"
             android:text="קבצים שהועלו"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:clickable="true"
-            android:focusable="true"
-            android:textColor="@color/purple_700" />
+            android:textSize="18sp" />
 
         <ListView
             android:id="@+id/filesListView"
@@ -56,7 +52,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp" />
 
-        <!-- רשימת ההודעות -->
+        <!-- רשימת הודעות -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -70,13 +66,13 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp" />
 
-        <!-- הזנת הודעה חדשה -->
+        <!-- הזנת הודעה -->
         <EditText
             android:id="@+id/newMessageInput"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            android:hint="הקלד הודעה חדשה" />
+            android:hint="הקלד הודעה חדשה"
+            android:layout_marginBottom="16dp" />
 
         <!-- כפתורי פעולה -->
         <LinearLayout
@@ -84,7 +80,6 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal">
 
-            <!-- כפתור העלאת קובץ -->
             <Button
                 android:id="@+id/btnUploadFile"
                 android:layout_width="0dp"
@@ -92,7 +87,6 @@
                 android:layout_weight="1"
                 android:text="העלה קובץ" />
 
-            <!-- כפתור שליחת הודעה -->
             <Button
                 android:id="@+id/btnSendMessage"
                 android:layout_width="0dp"

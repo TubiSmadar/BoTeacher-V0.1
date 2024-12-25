@@ -1,3 +1,4 @@
+
 package com.example.myapplication;
 
 import android.content.Intent;
@@ -20,102 +21,80 @@ public class CourseContentActivity extends AppCompatActivity {
 
     private static final int REQUEST_FILE_PICKER = 1;
 
-    private ArrayList<String> filesList;
-    private ArrayList<String> messagesList;
-    private String generalNotes;
+    private DatabaseHelper databaseHelper;
+    private String courseName;
 
+    private ArrayList<String> filesList = new ArrayList<>();
+    private ArrayList<String> messagesList = new ArrayList<>();
+    private String generalNotes = "";
+
+    private TextView existingNotesView;
     private ListView filesListView, messagesListView;
-    private EditText newMessageInput, newNotesInput;
-    private Button uploadFileButton, sendMessageButton, saveNotesButton;
-    private TextView existingNotesView, filesTitle;
+    private EditText newNotesInput, newMessageInput;
+    private Button btnSaveNotes, btnUploadFile, btnSendMessage;
+    private ArrayAdapter<String> messagesAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_course_content);
 
-        // קבלת נתונים מתוך ה-Intent
-        String courseName = getIntent().getStringExtra("courseName");
+        databaseHelper = new DatabaseHelper(this);
+
+        // קבלת שם הקורס
+        courseName = getIntent().getStringExtra("courseName");
         setTitle("תוכן הקורס: " + courseName);
 
-        filesList = getIntent().getStringArrayListExtra("filesList");
-        if (filesList == null) filesList = new ArrayList<>();
-
-        messagesList = getIntent().getStringArrayListExtra("messagesList");
-        if (messagesList == null) messagesList = new ArrayList<>();
-
-        generalNotes = getIntent().getStringExtra("generalNotes");
-        if (generalNotes == null) generalNotes = "";
-
-        // איתור רכיבי הממשק
+        // אתחול רכיבי ממשק
+        existingNotesView = findViewById(R.id.existingNotesView);
         filesListView = findViewById(R.id.filesListView);
         messagesListView = findViewById(R.id.messagesListView);
-        newMessageInput = findViewById(R.id.newMessageInput);
         newNotesInput = findViewById(R.id.newNotesInput);
-        uploadFileButton = findViewById(R.id.btnUploadFile);
-        sendMessageButton = findViewById(R.id.btnSendMessage);
-        saveNotesButton = findViewById(R.id.btnSaveNotes);
-        existingNotesView = findViewById(R.id.existingNotesView);
-        filesTitle = findViewById(R.id.filesTitle);
+        newMessageInput = findViewById(R.id.newMessageInput);
+        btnSaveNotes = findViewById(R.id.btnSaveNotes);
+        btnUploadFile = findViewById(R.id.btnUploadFile);
+        btnSendMessage = findViewById(R.id.btnSendMessage);
 
-        // הצגת הערות כלליות קיימות
-        existingNotesView.setText(generalNotes);
+        // טעינת הודעות קודמות ממסד הנתונים
+        messagesList = databaseHelper.getMessages(courseName);
+        messagesAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, messagesList);
+        messagesListView.setAdapter(messagesAdapter);
 
-        // מאזין ללחיצה על "קבצים שהועלו"
-        filesTitle.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (filesList.isEmpty()) {
-                    Toast.makeText(CourseContentActivity.this, "אין קבצים שהועלו", Toast.LENGTH_SHORT).show();
-                } else {
-                    updateFilesListView();
-                    Toast.makeText(CourseContentActivity.this, "מציג את הקבצים שהועלו", Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
+        // עדכון תצוגת הערות כלליות
+        updateNotesView();
 
-        // העלאת קובץ
-        uploadFileButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                openFilePicker();
-            }
-        });
-
-        // שליחת הודעה חדשה
-        sendMessageButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String newMessage = newMessageInput.getText().toString();
-                if (!newMessage.isEmpty()) {
-                    messagesList.add(newMessage);
-                    updateMessagesListView();
-                    newMessageInput.setText("");
-                } else {
-                    Toast.makeText(CourseContentActivity.this, "אנא כתוב הודעה", Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
-
-        // שמירת הערות כלליות חדשות
-        saveNotesButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String newNotes = newNotesInput.getText().toString();
-                if (!newNotes.isEmpty()) {
-                    generalNotes += "\n" + newNotes;
-                    existingNotesView.setText(generalNotes);
-                    newNotesInput.setText("");
-                    Toast.makeText(CourseContentActivity.this, "הערות נשמרו בהצלחה", Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(CourseContentActivity.this, "אנא כתוב הערות", Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
-
-        // הצגת רשימות ראשוניות
+        // עדכון רשימות
         updateFilesListView();
-        updateMessagesListView();
+
+        // שמירת הערות חדשות
+        btnSaveNotes.setOnClickListener(v -> {
+            String newNotes = newNotesInput.getText().toString();
+            if (!newNotes.isEmpty()) {
+                generalNotes += newNotes + "\n";
+                updateNotesView();
+                newNotesInput.setText("");
+                Toast.makeText(this, "הערות נשמרו בהצלחה", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, "אנא הזן הערות חדשות", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        // העלאת קובץ חדש
+        btnUploadFile.setOnClickListener(v -> openFilePicker());
+
+        // שליחת הודעה חדשה ושמירה במסד הנתונים
+        btnSendMessage.setOnClickListener(v -> {
+            String newMessage = newMessageInput.getText().toString();
+            if (!newMessage.isEmpty()) {
+                databaseHelper.insertMessage(courseName, newMessage);
+                messagesList.add(newMessage);
+                messagesAdapter.notifyDataSetChanged();
+                newMessageInput.setText("");
+                Toast.makeText(this, "הודעה נשמרה בהצלחה", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, "אנא הזן הודעה", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void openFilePicker() {
@@ -140,13 +119,12 @@ public class CourseContentActivity extends AppCompatActivity {
         }
     }
 
-    private void updateFilesListView() {
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, filesList);
-        filesListView.setAdapter(adapter);
+    private void updateNotesView() {
+        existingNotesView.setText(generalNotes.isEmpty() ? "אין הערות כלליות" : generalNotes);
     }
 
-    private void updateMessagesListView() {
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, messagesList);
-        messagesListView.setAdapter(adapter);
+    private void updateFilesListView() {
+        ArrayAdapter<String> filesAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, filesList);
+        filesListView.setAdapter(filesAdapter);
     }
 }
