@@ -19,19 +19,19 @@ import com.google.firebase.auth.FirebaseAuth;
 
 import java.util.Objects;
 
-public class AddPreApprovedEmployeeActivity extends AppCompatActivity {
+public class AddStudentActivity extends AppCompatActivity {
 
-    private EditText emailEditText, salaryEditText;
+    private EditText emailEditText, coursesEditText;
     private LinearLayout emailsContainer;
     private Database database;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_add_pre_approved_employee);
+        setContentView(R.layout.activity_add_student);
 
         emailEditText = findViewById(R.id.emailEditText);
-        salaryEditText = findViewById(R.id.salaryEditText);
+        coursesEditText = findViewById(R.id.coursesEditText);
         Button addButton = findViewById(R.id.addButton);
         emailsContainer = findViewById(R.id.emailsContainer);
 
@@ -41,23 +41,23 @@ public class AddPreApprovedEmployeeActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 String email = emailEditText.getText().toString().trim();
-                String salary = salaryEditText.getText().toString().trim();
-                if (isValidEmail(email) && isValidSalary(salary)) {
-                    String managerId = Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid();
-                    database.addPreApprovedEmail(email, salary, managerId, new Database.PreApprovedEmailCallback() {
+                String courses = coursesEditText.getText().toString().trim();
+                if (isValidEmail(email) && isValidCourses(courses)) {
+                    String teacherId = Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid();
+                    database.addPreApprovedEmail(email, courses, teacherId, new Database.PreApprovedEmailCallback() {
                         @Override
                         public void onSuccess() {
                             addEmailToView(email);
-                            Toast.makeText(AddPreApprovedEmployeeActivity.this, "Email added successfully", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(AddStudentActivity.this, "Student added successfully", Toast.LENGTH_SHORT).show();
                         }
 
                         @Override
                         public void onFailure(@NonNull Exception e) {
-                            Toast.makeText(AddPreApprovedEmployeeActivity.this, "Failed to add email", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(AddStudentActivity.this, "Failed to add student", Toast.LENGTH_SHORT).show();
                         }
                     });
                 } else {
-                    Toast.makeText(AddPreApprovedEmployeeActivity.this, "Please enter a valid email and salary", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(AddStudentActivity.this, "Please enter a valid email and courses", Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -67,14 +67,8 @@ public class AddPreApprovedEmployeeActivity extends AppCompatActivity {
         return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches();
     }
 
-    private boolean isValidSalary(String salary) {
-        try {
-            // This will throw an exception if the salary is not a valid double
-            Double.parseDouble(salary);
-            return true; // Salary is a valid double
-        } catch (NumberFormatException e) {
-            return false; // Salary is not a valid double
-        }
+    private boolean isValidCourses(String courses) {
+        return !courses.isEmpty(); // Simple validation to check non-empty courses
     }
 
     private void addEmailToView(String email) {
@@ -88,12 +82,12 @@ public class AddPreApprovedEmployeeActivity extends AppCompatActivity {
             database.removePreApprovedEmail(email, new Database.PreApprovedEmailCallback() {
                 @Override
                 public void onSuccess() {
-                    Toast.makeText(AddPreApprovedEmployeeActivity.this, "Email removed successfully", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(AddStudentActivity.this, "Student removed successfully", Toast.LENGTH_SHORT).show();
                 }
 
                 @Override
                 public void onFailure(@NonNull Exception e) {
-                    Toast.makeText(AddPreApprovedEmployeeActivity.this, "Failed to remove email", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(AddStudentActivity.this, "Failed to remove student", Toast.LENGTH_SHORT).show();
                 }
             });
         });

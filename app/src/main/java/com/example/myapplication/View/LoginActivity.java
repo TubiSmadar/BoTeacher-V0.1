@@ -48,19 +48,27 @@ public class LoginActivity extends AppCompatActivity {
         database.setAuthCallBack(new AuthCallBack() {
             public void onLoginComplete(Task<AuthResult> task) {
                 if (task.isSuccessful()) {
-
                     if (database.getCurrentUser() != null) {
-                        // Fetch user data
+                        // Fetch user data with callback
                         String uid = database.getCurrentUser().getUid();
-                        database.fetchUserData(uid);
+                        database.fetchUserData(uid, new Database.UserFetchCallback() {
+                            @Override
+                            public void onSuccess(User user) {
+                                Toast.makeText(LoginActivity.this, "Welcome " + user.getFirstname(), Toast.LENGTH_SHORT).show();
+                                Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                                startActivity(intent);
+                                finish();
+                            }
+
+                            @Override
+                            public void onFailure(Exception e) {
+                                Toast.makeText(LoginActivity.this, "Failed to fetch user data", Toast.LENGTH_SHORT).show();
+                            }
+                        });
                     } else {
                         // Handle the case where login failed
                         Toast.makeText(LoginActivity.this, "Login failed", Toast.LENGTH_SHORT).show();
                     }
-                    Toast.makeText(LoginActivity.this, "Success Login", Toast.LENGTH_SHORT).show();
-                    Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                    startActivity(intent);
-                    finish();
                 } else {
                     String error = Objects.requireNonNull(task.getException()).getMessage();
                     Toast.makeText(LoginActivity.this, error, Toast.LENGTH_SHORT).show();
@@ -121,7 +129,17 @@ public class LoginActivity extends AppCompatActivity {
 
         if (database.getCurrentUser() != null) {
             String uid = database.getCurrentUser().getUid();
-            database.fetchUserData(uid);
+            database.fetchUserData(uid, new Database.UserFetchCallback() {
+                @Override
+                public void onSuccess(User user) {
+                    Toast.makeText(LoginActivity.this, "Welcome " + user.getFirstname(), Toast.LENGTH_SHORT).show();
+                }
+
+                @Override
+                public void onFailure(Exception e) {
+                    Toast.makeText(LoginActivity.this, "Failed to fetch user data", Toast.LENGTH_SHORT).show();
+                }
+            });
         }
     }
 }

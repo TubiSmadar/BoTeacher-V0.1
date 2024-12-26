@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">ShiftManager</string>
+    <string name="app_name">BoTeacher</string>
     <string name="title_activity_login">LoginAct</string>
     <string name="first_fragment_label">First Fragment</string>
     <string name="second_fragment_label">Second Fragment</string>
@@ -55,6 +55,8 @@
     <string name="you_have_no_employees_yet">You have no employees yet.</string>
     <string name="ok">OK</string>
     <string name="remove_button">remove button</string>
+    <string name="new_student_email">Enter student email</string>
+    <string name="new_student_courses">Enter courses</string>
     <string name="employee_name">Employee Name</string>
     <string name="shifts">Shifts</string>
     <string name="salary">Salary</string>

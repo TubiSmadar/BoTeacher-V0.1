@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:name=".View.AddPreApprovedEmployeeActivity"
+    android:name=".View.AddStudentActivity"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
@@ -15,18 +15,17 @@
         android:paddingHorizontal="20dp"
         android:paddingVertical="15dp"
         android:background="@drawable/purple_border"
-        android:hint="@string/new_employee_email" />
+        android:hint="@string/new_student_email" />
 
     <EditText
-        android:id="@+id/salaryEditText"
+        android:id="@+id/coursesEditText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingHorizontal="20dp"
         android:paddingVertical="15dp"
         android:layout_marginTop="20dp"
         android:background="@drawable/purple_border"
-        android:hint="@string/new_employee_salary"
-        android:inputType="numberDecimal" />
+        android:hint="@string/new_student_courses" />
 
     <Button
         android:id="@+id/addButton"

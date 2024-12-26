@@ -11,6 +11,11 @@ public class User extends FirebaseKey implements Serializable {
     private String password;
     private String phoneNumber;
     private int account_type;
+
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
     private String myId;
 
     public User() {

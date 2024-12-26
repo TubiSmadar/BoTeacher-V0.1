@@ -3,6 +3,7 @@ package com.example.myapplication.View;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -59,14 +60,19 @@ public class SignupActivity extends AppCompatActivity {
 
             }
 
+
             @Override
             public void onCreateAccountComplete(boolean status, String err) {
                 if (status) {
+                    Log.d("SignupActivity", "Account created successfully");
                     Toast.makeText(SignupActivity.this, "Account created successfully", Toast.LENGTH_SHORT).show();
+                    finish(); // Close activity or redirect
                 } else {
-                    Toast.makeText(SignupActivity.this, err, Toast.LENGTH_SHORT).show();
+                    Log.e("SignupActivity", "Account creation failed: " + err);
+                    Toast.makeText(SignupActivity.this, "Error: " + err, Toast.LENGTH_LONG).show();
                 }
             }
+
         });
 
         signupButton.setOnClickListener(new View.OnClickListener() {
