@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/a_futuristic_classroom"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- הזנת שם הקורס -->
+        <EditText
+            android:id="@+id/courseNameInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Enter Course Name"
+            android:layout_marginBottom="16dp" />
+
+        <!-- הזנת הודעה על החומר -->
+        <EditText
+            android:id="@+id/materialMessageInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Enter a message about the material"
+            android:layout_marginBottom="16dp" />
+
+        <!-- כפתור להעלאת קובץ -->
+        <Button
+            android:id="@+id/btnUploadFile"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Upload File"
+            android:layout_marginBottom="16dp" />
+
+        <!-- כפתור לשליחת הודעה לצ'אט -->
+        <Button
+            android:id="@+id/btnSendMessage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Send Message to Chat"
+            android:layout_marginBottom="16dp" />
+
+        <!-- כפתור ליצירת קורס -->
+        <Button
+            android:id="@+id/btnCreateCourse"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Create Course"
+            android:layout_marginBottom="16dp" />
+
+        <!-- רשימת הודעות הצ'אט -->
+        <ListView
+            android:id="@+id/chatListView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#FFFFFF"
+            android:layout_marginTop="16dp"
+            android:padding="8dp"
+            android:scrollbars="vertical" />
+    </LinearLayout>
+</ScrollView>
