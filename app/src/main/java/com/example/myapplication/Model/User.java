@@ -81,7 +81,7 @@ public class User extends FirebaseKey implements Serializable {
         if (this.lastname == null || this.lastname.isEmpty()) return false;
         if (this.email == null || this.email.isEmpty()) return false;
         if (this.password == null || this.password.isEmpty()) return false;
-        return this.phoneNumber != null && !this.phoneNumber.isEmpty();
+        return true;
     }
 
     public String getKey() {

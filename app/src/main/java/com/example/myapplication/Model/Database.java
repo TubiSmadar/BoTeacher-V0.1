@@ -52,11 +52,20 @@ public class Database {
         return mAuth.getCurrentUser();
     }
 
-    public void loginUser(String email, String password) {
+    /*public void loginUser(String email, String password) {
         this.mAuth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
+                        authCallBack.onLoginComplete(task);
+                    }
+                });
+    }*/
+
+    public void loginUser(String email, String password) {
+        this.mAuth.signInWithEmailAndPassword(email, password)
+                .addOnCompleteListener(task -> {
+                    if (authCallBack != null) {
                         authCallBack.onLoginComplete(task);
                     }
                 });
@@ -73,7 +82,7 @@ public class Database {
                             saveUserData(userData);
 
                             if (userData.getAccount_type() == 1) { // Teacher
-                                addTeacher(userId, userData.getFirstname(), userData.getLastname(), userData.getPhoneNumber(),userData.getEmail());
+                                addTeacher(userId, userData.getFirstname(), userData.getLastname(), userData.getEmail());
                             } else { // Student
                                 db.collection(PRE_APPROVED_EMAILS_TABLE).document(email).get()
                                         .addOnSuccessListener(documentSnapshot -> {
@@ -122,11 +131,11 @@ public class Database {
                 });
     }
 
-    private void addTeacher(String teacherId, String firstname, String lastname, String phoneNumber,String email) {
+    private void addTeacher(String teacherId, String firstname, String lastname,String email) {
         Map<String, Object> teacherData = new HashMap<>();
+        teacherData.put("account_type", 1);
         teacherData.put("firstname", firstname);
         teacherData.put("lastname", lastname);
-        teacherData.put("phoneNumber", phoneNumber);
         teacherData.put("email",email);
         teacherData.put("studentIds", new ArrayList<>());
 
@@ -170,19 +179,38 @@ public class Database {
     }
 
     public void fetchUserData(String uid, UserFetchCallback callback) {
-        db.collection(STUDENTS_TABLE).document(uid).get()
+        // Try fetching from the TEACHERS_TABLE
+        db.collection(TEACHERS_TABLE).document(uid).get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         DocumentSnapshot document = task.getResult();
                         if (document.exists()) {
                             User user = document.toObject(User.class);
                             if (user != null) {
+                                user.setAccount_type(1); // Lecturer account
                                 callback.onSuccess(user);
                             } else {
-                                callback.onFailure(new Exception("User data is null"));
+                                callback.onFailure(new Exception("Lecturer data is null"));
                             }
                         } else {
-                            callback.onFailure(new Exception("Document does not exist"));
+                            // Try fetching from the STUDENTS_TABLE
+                            db.collection(STUDENTS_TABLE).document(uid).get()
+                                    .addOnSuccessListener(teacherDoc -> {
+                                        if (teacherDoc.exists()) {
+                                            User user = teacherDoc.toObject(User.class);
+                                            if (user != null) {
+                                                user.setAccount_type(0); // Student account
+                                                callback.onSuccess(user);
+                                            } else {
+                                                callback.onFailure(new Exception("Student data is null"));
+                                            }
+                                        } else {
+                                            User errorUser = new User();
+                                            errorUser.setAccount_type(-1); // Default to -1 for unknown type
+                                            callback.onFailure(new Exception("Document does not exist in Students or Lecturers table"));
+                                        }
+                                    })
+                                    .addOnFailureListener(callback::onFailure);
                         }
                     } else {
                         callback.onFailure(task.getException());

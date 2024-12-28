@@ -22,7 +22,7 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 
 public class SignupActivity extends AppCompatActivity {
-    EditText firstname, lastname, signupEmail, signupPassword, phoneNumber;
+    EditText firstname, lastname, signupEmail, signupPassword;
     EditText Id_Number;
     TextView txtV_button_back;
     Button signupButton;
@@ -47,7 +47,6 @@ public class SignupActivity extends AppCompatActivity {
         txtV_button_back = findViewById(R.id.loginRedirectText_ls);
         signupButton = findViewById(R.id.signupButton);
         backButton = findViewById(R.id.customBackButton);
-        phoneNumber = findViewById(R.id.editTextPhoneNumber);
         Id_Number = findViewById(R.id.Id_Number);
         accountTypeSwitch = findViewById(R.id.switchAccountType);
     }
@@ -98,7 +97,6 @@ public class SignupActivity extends AppCompatActivity {
                             employee.setEmail(email);
                             employee.setFirstname(firstname.getText().toString());
                             employee.setLastname(lastname.getText().toString());
-                            employee.setPhoneNumber(phoneNumber.getText().toString());
                             employee.setPassword(signupPassword.getText().toString());
                             int accountType = accountTypeSwitch.isChecked() ? 1 : 0;
                             employee.setAccount_type(accountType);
@@ -169,7 +167,6 @@ public class SignupActivity extends AppCompatActivity {
         customer.setEmail(signupEmail.getText().toString());
         customer.setFirstname(firstname.getText().toString());
         customer.setLastname(lastname.getText().toString());
-        customer.setPhoneNumber(phoneNumber.getText().toString());
         customer.setPassword(signupPassword.getText().toString());
 
         String password = customer.getPassword();
