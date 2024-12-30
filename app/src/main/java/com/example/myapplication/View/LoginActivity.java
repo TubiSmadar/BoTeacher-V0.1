@@ -8,6 +8,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.myapplication.Controller.AuthCallBack;
@@ -15,17 +16,28 @@ import com.example.myapplication.Controller.UserCallBack;
 import com.example.myapplication.Model.Database;
 import com.example.myapplication.Model.User;
 import com.example.myapplication.R;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-
-import java.util.Objects;
+import com.google.firebase.auth.GoogleAuthProvider;
 
 public class LoginActivity extends AppCompatActivity {
     TextView forgotPasswordButton, signupRedirectButton;
     private EditText emailEdit, password_edit;
     private Button loginButton;
     private Database database;
+
+    private GoogleSignInClient mGoogleSignInClient;
+    private static final int RC_SIGN_IN = 100; // Google Sign-In Request Code
+
+    private FirebaseAuth firebaseAuth; // Added FirebaseAuth variable
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,52 +53,26 @@ public class LoginActivity extends AppCompatActivity {
         loginButton = findViewById(R.id.login_button);
         signupRedirectButton = findViewById(R.id.signupRedirectButton);
         forgotPasswordButton = findViewById(R.id.forgotPasswordButtn);
+        findViewById(R.id.googleSignInButton).setOnClickListener(v -> googleSignIn()); // Google Sign-In Button
     }
 
     private void initVars() {
         database = new Database();
 
-        /*database.setAuthCallBack(new AuthCallBack() {
-            public void onLoginComplete(Task<AuthResult> task) {
-                if (task.isSuccessful()) {
-                    if (database.getCurrentUser() != null) {
-                        // Fetch user data with callback
-                        String uid = database.getCurrentUser().getUid();
-                        database.fetchUserData(uid, new Database.UserFetchCallback() {
-                            @Override
-                            public void onSuccess(User user) {
-                                Toast.makeText(LoginActivity.this, "Welcome " + user.getFirstname(), Toast.LENGTH_SHORT).show();
-                                //Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                                //startActivity(intent);
-                                //finish();
-                            }
+        firebaseAuth = FirebaseAuth.getInstance(); // Initialize FirebaseAuth
 
-                            @Override
-                            public void onFailure(Exception e) {
-                                Toast.makeText(LoginActivity.this, "Failed to fetch user data", Toast.LENGTH_SHORT).show();
-                            }
-                        });
-                    } else {
-                        // Handle the case where login failed
-                        Toast.makeText(LoginActivity.this, "Login failed", Toast.LENGTH_SHORT).show();
-                    }
-                } else {
-                    String error = Objects.requireNonNull(task.getException()).getMessage();
-                    Toast.makeText(LoginActivity.this, error, Toast.LENGTH_SHORT).show();
-                }
-            }
-
-            @Override
-            public void onCreateAccountComplete(boolean status, String err) {
-
-            }
-        });*/
+        // Configure Google Sign-In
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestIdToken(getString(R.string.default_web_client_id)) // Replace with your web client ID
+                .requestEmail()
+                .build();
+        mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
 
         database.setAuthCallBack(new AuthCallBack() {
             @Override
             public void onLoginComplete(Task<AuthResult> task) {
                 if (task.isSuccessful()) {
-                    FirebaseUser user = database.getCurrentUser();
+                    FirebaseUser user = firebaseAuth.getCurrentUser();
                     if (user != null) {
                         String uid = user.getUid();
                         database.fetchUserData(uid, new Database.UserFetchCallback() {
@@ -94,13 +80,9 @@ public class LoginActivity extends AppCompatActivity {
                             public void onSuccess(User user) {
                                 Toast.makeText(LoginActivity.this, "Welcome " + user.getFirstname(), Toast.LENGTH_SHORT).show();
                                 if (user.getAccount_type() == 1) {
-                                    Intent intent = new Intent(LoginActivity.this, LecturerActivity.class);
-                                    startActivity(intent);
-                                } else if (user.getAccount_type() == 0) {
-                                    Intent intent = new Intent(LoginActivity.this, StudentActivity.class);
-                                    startActivity(intent);
+                                    startActivity(new Intent(LoginActivity.this, LecturerActivity.class));
                                 } else {
-                                    Toast.makeText(LoginActivity.this, "Unknown account type. Please contact support.", Toast.LENGTH_SHORT).show();
+                                    startActivity(new Intent(LoginActivity.this, StudentActivity.class));
                                 }
                                 finish();
                             }
@@ -110,8 +92,6 @@ public class LoginActivity extends AppCompatActivity {
                                 Toast.makeText(LoginActivity.this, "Failed to fetch user data: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                             }
                         });
-                    } else {
-                        Toast.makeText(LoginActivity.this, "User is null after login.", Toast.LENGTH_SHORT).show();
                     }
                 } else {
                     Toast.makeText(LoginActivity.this, "Login failed: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
@@ -120,97 +100,65 @@ public class LoginActivity extends AppCompatActivity {
 
             @Override
             public void onCreateAccountComplete(boolean status, String err) {
-                // Not used here
             }
         });
 
-        database.setUserCallBack(new UserCallBack() {
-            @Override
-            public void onUserFetchDataComplete(User customer) {
-            }
+        signupRedirectButton.setOnClickListener(view -> {
+            startActivity(new Intent(LoginActivity.this, SignupActivity.class));
+            finish();
+        });
 
-            @Override
-            public void onUpdateComplete(Task<Void> task) {
+        loginButton.setOnClickListener(view -> {
+            String email = emailEdit.getText().toString().trim();
+            String password = password_edit.getText().toString().trim();
+
+            if (email.isEmpty()) {
+                Toast.makeText(LoginActivity.this, "Enter email", Toast.LENGTH_SHORT).show();
+            } else if (password.isEmpty()) {
+                Toast.makeText(LoginActivity.this, "Enter password", Toast.LENGTH_SHORT).show();
+            } else {
+                database.loginUser(email, password);
             }
         });
 
-
-        signupRedirectButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(LoginActivity.this, SignupActivity.class);
-                startActivity(intent);
-                finish();
-            }
+        forgotPasswordButton.setOnClickListener(v -> {
+            startActivity(new Intent(LoginActivity.this, ForgotPasswordActivity.class));
+            finish();
         });
+    }
 
-        loginButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                String email = emailEdit.getText().toString().trim();
-                String password = password_edit.getText().toString().trim();
+    private void googleSignIn() {
+        Intent signInIntent = mGoogleSignInClient.getSignInIntent();
+        startActivityForResult(signInIntent, RC_SIGN_IN);
+    }
 
-                if (email.isEmpty()) {
-                    Toast.makeText(LoginActivity.this, "request email", Toast.LENGTH_SHORT).show();
-                } else if (password.isEmpty()) {
-                    Toast.makeText(LoginActivity.this, "request password", Toast.LENGTH_SHORT).show();
-                } else {
-                    // Perform login
-                    database.loginUser(email, password);
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
 
-                    /*FirebaseUser currentUser = database.getCurrentUser();
-                    if (currentUser != null) {
-                        String uid = currentUser.getUid();
-
-                        // Fetch user data to determine account type
-                        database.fetchUserData(uid, new Database.UserFetchCallback() {
-                            @Override
-                            public void onSuccess(User user) {
-                                // Redirect based on account type
-                                if (user.getAccount_type() == 1) { // Teacher
-                                    Intent intent = new Intent(LoginActivity.this, LecturerActivity.class);
-                                    startActivity(intent);
-                                } else { // Student
-                                    Intent intent = new Intent(LoginActivity.this, StudentActivity.class);
-                                    startActivity(intent);
-                                }
-                                finish();
-                            }
-
-                            @Override
-                            public void onFailure(Exception e) {
-                                // Handle failure (e.g., user data doesn't exist or fetch failed)
-                                Toast.makeText(LoginActivity.this, "Failed to fetch user data: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                            }
-                        });
-                    }*/
-
-                }
+        if (requestCode == RC_SIGN_IN) {
+            Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
+            try {
+                GoogleSignInAccount account = task.getResult(ApiException.class);
+                firebaseAuthWithGoogle(account.getIdToken());
+            } catch (ApiException e) {
+                Toast.makeText(LoginActivity.this, "Google Sign-In failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
             }
-        });
-
-        forgotPasswordButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(LoginActivity.this, ForgotPasswordActivity.class);
-                startActivity(intent);
-                finish();
-            }
-        });
-
-        if (database.getCurrentUser() != null) {
-            String uid = database.getCurrentUser().getUid();
-            database.fetchUserData(uid, new Database.UserFetchCallback() {
-                @Override
-                public void onSuccess(User user) {
-                    Toast.makeText(LoginActivity.this, "Welcome " + user.getFirstname(), Toast.LENGTH_SHORT).show();
-                }
-
-                @Override
-                public void onFailure(Exception e) {
-                    Toast.makeText(LoginActivity.this, "Failed to fetch user data", Toast.LENGTH_SHORT).show();
-                }
-            });
         }
+    }
+
+    private void firebaseAuthWithGoogle(String idToken) {
+        AuthCredential credential = GoogleAuthProvider.getCredential(idToken, null);
+        firebaseAuth.signInWithCredential(credential)
+                .addOnCompleteListener(this, task -> {
+                    if (task.isSuccessful()) {
+                        FirebaseUser user = firebaseAuth.getCurrentUser();
+                        Toast.makeText(LoginActivity.this, "Welcome " + user.getDisplayName(), Toast.LENGTH_SHORT).show();
+                        startActivity(new Intent(LoginActivity.this, StudentActivity.class));
+                        finish();
+                    } else {
+                        Toast.makeText(LoginActivity.this, "Authentication Failed.", Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 }

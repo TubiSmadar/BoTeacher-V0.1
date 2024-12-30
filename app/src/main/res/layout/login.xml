@@ -14,18 +14,18 @@
         android:padding="16dp"
         android:gravity="center">
 
-        <!-- Username Field -->
+        <!-- Email Field -->
         <EditText
-            android:id="@+id/etUsername"
+            android:id="@+id/loginEmailEdit"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Email"
-            android:inputType="text"
+            android:inputType="textEmailAddress"
             android:padding="8dp" />
 
         <!-- Password Field -->
         <EditText
-            android:id="@+id/etPassword"
+            android:id="@+id/login_passwordEdit"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Password"
@@ -35,20 +35,39 @@
 
         <!-- Login Button -->
         <Button
-            android:id="@+id/btnLogin"
+            android:id="@+id/login_button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Login"
             android:layout_marginTop="16dp" />
 
-        <!-- Optional Sign-up Link -->
+        <!-- Google Sign-In Button -->
+        <com.google.android.gms.common.SignInButton
+            android:id="@+id/googleSignInButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:layout_gravity="center" />
+
+        <!-- Sign-up Redirect Text -->
         <TextView
-            android:id="@+id/tvSignup"
+            android:id="@+id/signupRedirectButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Don't have an account? Sign up"
             android:layout_marginTop="16dp"
             android:textSize="16sp" />
+
+        <!-- Forgot Password Button -->
+        <TextView
+            android:id="@+id/forgotPasswordButtn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Forgot Password?"
+            android:layout_marginTop="16dp"
+            android:textSize="16sp"
+            android:textColor="@android:color/holo_blue_dark" />
+
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
