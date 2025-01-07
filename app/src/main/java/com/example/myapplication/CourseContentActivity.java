@@ -1,10 +1,8 @@
-
 package com.example.myapplication;
 
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -20,18 +18,21 @@ import java.util.ArrayList;
 public class CourseContentActivity extends AppCompatActivity {
 
     private static final int REQUEST_FILE_PICKER = 1;
+    private static final int REQUEST_ADD_STUDENTS = 2;
 
     private DatabaseHelper databaseHelper;
     private String courseName;
 
     private ArrayList<String> filesList = new ArrayList<>();
     private ArrayList<String> messagesList = new ArrayList<>();
+    private ArrayList<String> studentsList = new ArrayList<>(); // רשימת סטודנטים
+
     private String generalNotes = "";
 
     private TextView existingNotesView;
     private ListView filesListView, messagesListView;
     private EditText newNotesInput, newMessageInput;
-    private Button btnSaveNotes, btnUploadFile, btnSendMessage;
+    private Button btnSaveNotes, btnUploadFile, btnSendMessage, btnAddStudents;
     private ArrayAdapter<String> messagesAdapter;
 
     @Override
@@ -54,6 +55,7 @@ public class CourseContentActivity extends AppCompatActivity {
         btnSaveNotes = findViewById(R.id.btnSaveNotes);
         btnUploadFile = findViewById(R.id.btnUploadFile);
         btnSendMessage = findViewById(R.id.btnSendMessage);
+        btnAddStudents = findViewById(R.id.btnAddStudents); // כפתור הוספת סטודנטים
 
         // טעינת הודעות קודמות ממסד הנתונים
         messagesList = databaseHelper.getMessages(courseName);
@@ -95,6 +97,13 @@ public class CourseContentActivity extends AppCompatActivity {
                 Toast.makeText(this, "אנא הזן הודעה", Toast.LENGTH_SHORT).show();
             }
         });
+
+        // מעבר למסך הוספת סטודנטים
+        btnAddStudents.setOnClickListener(v -> {
+            Intent intent = new Intent(CourseContentActivity.this, AddStudentsActivity.class);
+            intent.putExtra("courseName", courseName);
+            startActivityForResult(intent, REQUEST_ADD_STUDENTS);
+        });
     }
 
     private void openFilePicker() {
@@ -115,6 +124,15 @@ public class CourseContentActivity extends AppCompatActivity {
                 Toast.makeText(this, "קובץ הועלה בהצלחה: " + fileUri.getLastPathSegment(), Toast.LENGTH_SHORT).show();
             } else {
                 Toast.makeText(this, "שגיאה בהעלאת הקובץ", Toast.LENGTH_SHORT).show();
+            }
+        }
+
+        // קליטת רשימת הסטודנטים ממסך AddStudentsActivity
+        if (requestCode == REQUEST_ADD_STUDENTS && resultCode == RESULT_OK && data != null) {
+            ArrayList<String> newStudentsList = data.getStringArrayListExtra("studentsList");
+            if (newStudentsList != null && !newStudentsList.isEmpty()) {
+                studentsList.addAll(newStudentsList);
+                Toast.makeText(this, "Students added to " + courseName + "!", Toast.LENGTH_SHORT).show();
             }
         }
     }
