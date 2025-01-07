@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="@drawable/background2"
+    tools:ignore="ExtraText">
+
+    <!-- הודעת ברוך הבא -->
+    <TextView
+        android:id="@+id/courseNameTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="ברוך הבא לצ'אט"
+        android:textSize="18sp"
+        android:gravity="center"
+        android:padding="16dp"
+        android:textColor="#FFFFFF" />
+
+    <!-- היסטוריית צ'אט עם רקע לבן -->
+    <TextView
+        android:id="@+id/chatHistoryTextView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:padding="8dp"
+        android:scrollbars="vertical"
+        android:textSize="16sp"
+        android:textColor="#000000"
+        android:background="#FFFFFF" />
+
+    <!-- הצגת תמונה -->
+    <ImageView
+        android:id="@+id/chatImageView"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:scaleType="centerCrop"
+        android:contentDescription="Chat Image"
+        android:background="#E0E0E0"
+        android:visibility="visible" />
+
+    <!-- שורת הודעה והעלאת תמונה -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <!-- כפתור העלאת תמונה -->
+        <ImageView
+            android:id="@+id/uploadImageButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@android:drawable/ic_menu_camera"
+            android:contentDescription="Upload Image"
+            android:layout_gravity="center" />
+
+        <!-- שדה קלט להודעה -->
+        <EditText
+            android:id="@+id/messageInput"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="כתוב הודעה..."
+            android:padding="8dp"
+            android:background="@android:drawable/edit_text"
+            android:textColor="#000000" />
+
+        <!-- כפתור שליחה -->
+        <Button
+            android:id="@+id/sendButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="שלח"
+            android:layout_gravity="center"
+            android:backgroundTint="#9C27B0"
+            android:textColor="#FFFFFF" />
+    </LinearLayout>
+</LinearLayout>
