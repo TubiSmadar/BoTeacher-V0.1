@@ -1,12 +1,19 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@drawable/background2">
 
     <EditText
         android:id="@+id/studentNameInput"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="16dp"
+        android:layout_width="381dp"
+        android:layout_height="67dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginRight="16dp"
+        android:layout_marginBottom="16dp"
+        android:background="#FFFFFF"
         android:hint="Enter Student ID" />
 
     <Button
@@ -15,14 +22,16 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/studentNameInput"
         android:layout_margin="16dp"
-        android:text="Add Student" />
+        android:text="Add Student"
+       />
 
     <ListView
         android:id="@+id/studentsListView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/btnAddStudent"
-        android:layout_margin="16dp" />
+        android:layout_margin="16dp"
+        android:background="#FFFFFF"/>
 
     <Button
         android:id="@+id/btnFinish"

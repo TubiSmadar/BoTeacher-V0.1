@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="16dp"
-    android:background="@drawable/background"
+    android:background="@drawable/background2"
     tools:ignore="ExtraText">
 
     <!-- הודעת ברוך הבא -->
@@ -75,7 +75,7 @@
             android:layout_height="wrap_content"
             android:text="שלח"
             android:layout_gravity="center"
-            android:backgroundTint="#008577"
+            android:backgroundTint="#9C27B0"
             android:textColor="#FFFFFF" />
     </LinearLayout>
 </LinearLayout>

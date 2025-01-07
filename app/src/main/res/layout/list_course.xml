@@ -2,25 +2,31 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/background">
+    android:background="@drawable/background2">
 
     <!-- רשימת הקורסים -->
     <ListView
         android:id="@+id/coursesListView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="642dp"
         android:layout_above="@+id/addCourseButton"
-        android:padding="16dp" />
+        android:layout_marginBottom="-15dp"
+        android:padding="16dp"
+        android:textColor="#FFFFFF" />
 
     <!-- כפתור הוספת קורס -->
     <Button
         android:id="@+id/addCourseButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="133dp"
+        android:layout_height="72dp"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:text="יצירת קורס חדש"
-        android:backgroundTint="#008577"
-        android:textColor="#FFFFFF"
-        android:layout_margin="16dp" />
+        android:layout_marginStart="16dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginRight="16dp"
+        android:layout_marginBottom="16dp"
+        android:backgroundTint="#9C27B0"
+        android:text="יצירת קורס חדש" />
 </RelativeLayout>
