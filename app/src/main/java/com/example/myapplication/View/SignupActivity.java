@@ -83,6 +83,7 @@ public class SignupActivity extends AppCompatActivity {
                 }
 
                 String email = signupEmail.getText().toString();
+                String password = signupPassword.getText().toString();
 
                 // Check if user already exists
                 database.checkUserExists(email, new Database.UserExistsCallback() {
@@ -93,32 +94,10 @@ public class SignupActivity extends AppCompatActivity {
                             Toast.makeText(SignupActivity.this, "User already exists with this email", Toast.LENGTH_SHORT).show();
                         } else {
                             // User doesn't exist, proceed with account creation
-                            User employee = new User();
-                            employee.setEmail(email);
-                            employee.setFirstname(firstname.getText().toString());
-                            employee.setLastname(lastname.getText().toString());
-                            employee.setPassword(signupPassword.getText().toString());
-                            int accountType = accountTypeSwitch.isChecked() ? 1 : 0;
-                            employee.setAccount_type(accountType);
-
-                            String password = signupPassword.getText().toString().trim();
+                            User user = prepareUser(email);
 
                             // Modified call to include callback handling
-                            database.checkAndCreateAccount(email, password, employee, new AuthCallBack() {
-                                @Override
-                                public void onLoginComplete(Task<AuthResult> task) {
-                                    // Not used here
-                                }
-
-                                @Override
-                                public void onCreateAccountComplete(boolean status, String err) {
-                                    if (status) {
-                                        Toast.makeText(SignupActivity.this, "Account created successfully", Toast.LENGTH_SHORT).show();
-                                    } else {
-                                        Toast.makeText(SignupActivity.this, err, Toast.LENGTH_SHORT).show();
-                                    }
-                                }
-                            });
+                            database.createAccount(email, password, user);
                         }
                     }
 
@@ -163,16 +142,13 @@ public class SignupActivity extends AppCompatActivity {
     }
 
     private boolean checkInput() {
-        User customer = new User();
-        customer.setEmail(signupEmail.getText().toString());
-        customer.setFirstname(firstname.getText().toString());
-        customer.setLastname(lastname.getText().toString());
-        customer.setPassword(signupPassword.getText().toString());
 
-        String password = customer.getPassword();
-        String confirmPassword = customer.getPassword();
+        String email = signupEmail.getText().toString();
+        String password = signupPassword.getText().toString();
 
-        if (!customer.isValid()) {
+        User user = prepareUser(email);
+
+        if (!user.isValid()) {
             Toast.makeText(SignupActivity.this, "Please fill all user info!", Toast.LENGTH_SHORT).show();
             return false;
         }
@@ -182,18 +158,19 @@ public class SignupActivity extends AppCompatActivity {
             return false;
         }
 
-        if (!password.equals(confirmPassword)) {
-            Toast.makeText(SignupActivity.this, "mismatch between password and confirm password", Toast.LENGTH_SHORT).show();
-            return false;
-        }
         return true;
     }
 
-
-
-
-
-
-
+    private User prepareUser(String email){ //, String password) {
+        User user = new User();
+        user.setEmail(email);
+        user.setFirstname(firstname.getText().toString());
+        user.setLastname(lastname.getText().toString());
+        //user.setPassword(password);
+        user.setMyId(Id_Number.getText().toString());
+        int accountType = accountTypeSwitch.isChecked() ? 1 : 0;
+        user.setAccount_type(accountType);
+        return user;
+    }
 
 }

@@ -57,12 +57,14 @@
                 android:padding="8dp"
                 android:textColor="@color/purple" />
 
+
             <TextView
                 android:id="@+id/forgotPasswordButtn"
                 android:layout_width="203dp"
                 android:layout_height="50dp"
                 android:layout_gravity="center"
                 android:layout_marginTop="10dp"
+                android:onClick="onClick"
                 android:padding="8dp"
                 android:text="@string/forgot_password"
                 android:textColor="@color/purple"
@@ -74,17 +76,10 @@
                 android:layout_height="60dp"
                 android:layout_marginTop="20dp"
                 android:backgroundTint="@color/purple"
+                android:onClick="onClick"
                 android:text="@string/login1"
                 android:textSize="18sp"
                 app:cornerRadius="20dp" />
-
-            <!-- Google Sign-In Button -->
-            <com.google.android.gms.common.SignInButton
-                android:id="@+id/googleSignInButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_marginTop="20dp" />
 
             <TextView
                 android:id="@+id/signupRedirectButton"
@@ -92,6 +87,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:layout_marginTop="20dp"
+                android:onClick="onClick"
                 android:text="@string/not_yet_registered_"
                 android:textColor="@color/purple"
                 android:textSize="18sp" />

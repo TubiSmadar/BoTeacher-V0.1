@@ -9,17 +9,12 @@ public class User extends FirebaseKey implements Serializable {
     private String email;
     private String lastname;
     private String password;
-    private String phoneNumber;
     private int account_type;
-
-    public String getPhoneNumber() {
-        return phoneNumber;
-    }
 
     private String myId;
 
     public User() {
-        this.account_type = 0;
+        //this.account_type = 0;
     }
 
     public String getMyId() {
@@ -28,10 +23,6 @@ public class User extends FirebaseKey implements Serializable {
 
     public void setMyId(String setId) {
         this.myId = setId;
-    }
-
-    public void setPhoneNumber(String phoneNumber) {
-        this.phoneNumber = phoneNumber;
     }
 
     public String getFirstname() {
@@ -80,7 +71,8 @@ public class User extends FirebaseKey implements Serializable {
         if (this.firstname == null || this.firstname.isEmpty()) return false;
         if (this.lastname == null || this.lastname.isEmpty()) return false;
         if (this.email == null || this.email.isEmpty()) return false;
-        if (this.password == null || this.password.isEmpty()) return false;
+        //if (this.password == null || this.password.isEmpty()) return false;
+        if (this.myId == null || this.myId.isEmpty()) return false;
         return true;
     }
 

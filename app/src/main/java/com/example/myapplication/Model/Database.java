@@ -1,7 +1,5 @@
 package com.example.myapplication.Model;
 
-import android.util.Log;
-
 import androidx.annotation.NonNull;
 
 import com.example.myapplication.Controller.AuthCallBack;
@@ -11,20 +9,22 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
 public class Database {
 
-    public static final String STUDENTS_TABLE = "Students";
-    public static final String TEACHERS_TABLE = "Teachers";
-    public static final String PRE_APPROVED_EMAILS_TABLE = "PreApprovedEmails";
+    public static final String USERS_TABLE = "Users";
 
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
@@ -52,16 +52,6 @@ public class Database {
         return mAuth.getCurrentUser();
     }
 
-    /*public void loginUser(String email, String password) {
-        this.mAuth.signInWithEmailAndPassword(email, password)
-                .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        authCallBack.onLoginComplete(task);
-                    }
-                });
-    }*/
-
     public void loginUser(String email, String password) {
         this.mAuth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(task -> {
@@ -81,34 +71,6 @@ public class Database {
                             userData.setKeyOn(userId);
                             saveUserData(userData);
 
-                            if (userData.getAccount_type() == 1) { // Teacher
-                                addTeacher(userId, userData.getFirstname(), userData.getLastname(), userData.getEmail());
-                            } else { // Student
-                                db.collection(PRE_APPROVED_EMAILS_TABLE).document(email).get()
-                                        .addOnSuccessListener(documentSnapshot -> {
-                                            if (documentSnapshot.exists()) {
-                                                String teacherId = documentSnapshot.getString("teacherId");
-                                                addStudentToTeacherList(userId, teacherId);
-                                                removePreApprovedEmail(email, new PreApprovedEmailCallback() {
-                                                    @Override
-                                                    public void onSuccess() {
-                                                        Log.d("Database", "Pre-approved email removed successfully.");
-                                                    }
-
-                                                    @Override
-                                                    public void onFailure(@NonNull Exception e) {
-                                                        Log.e("Database", "Failed to remove pre-approved email: " + e.getMessage());
-                                                    }
-                                                });
-
-                                                authCallBack.onCreateAccountComplete(true, "");
-                                            } else {
-                                                authCallBack.onCreateAccountComplete(false, "Student's email not pre-approved.");
-                                            }
-                                        })
-                                        .addOnFailureListener(e -> authCallBack.onCreateAccountComplete(false, e.getMessage()));
-                            }
-
                         } else {
                             authCallBack.onCreateAccountComplete(false, Objects.requireNonNull(task.getException()).getMessage());
                         }
@@ -117,9 +79,16 @@ public class Database {
     }
 
     public void saveUserData(User user) {
-        this.db.collection(user.getAccount_type() == 1 ? TEACHERS_TABLE : STUDENTS_TABLE)
+        Map<String, Object> userData = new HashMap<>();
+        userData.put("firstname", user.getFirstname());
+        userData.put("lastname", user.getLastname());
+        userData.put("email", user.getEmail());
+        userData.put("myId", user.getMyId());
+        userData.put("account_type", user.getAccount_type()); // == 1 ? "teacher" : "student");
+
+        this.db.collection(USERS_TABLE)
                 .document(user.getKey())
-                .set(user)
+                .set(userData)
                 .addOnCompleteListener(new OnCompleteListener<Void>() {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
@@ -131,22 +100,9 @@ public class Database {
                 });
     }
 
-    private void addTeacher(String teacherId, String firstname, String lastname,String email) {
-        Map<String, Object> teacherData = new HashMap<>();
-        teacherData.put("account_type", 1);
-        teacherData.put("firstname", firstname);
-        teacherData.put("lastname", lastname);
-        teacherData.put("email",email);
-        teacherData.put("studentIds", new ArrayList<>());
-
-        db.collection(TEACHERS_TABLE).document(teacherId).set(teacherData)
-                .addOnSuccessListener(aVoid -> Log.d("Database", "Teacher added"))
-                .addOnFailureListener(e -> Log.w("Database", "Error adding teacher", e));
-    }
-
 
     public void checkUserExists(String email, final UserExistsCallback callback) {
-        db.collection(STUDENTS_TABLE)
+        db.collection(USERS_TABLE)
                 .whereEqualTo("email", email)
                 .get()
                 .addOnCompleteListener(task -> {
@@ -165,52 +121,85 @@ public class Database {
         void onUserExistsCheckFailure(Exception e);
     }
 
-    private void addStudentToTeacherList(String userId, String teacherId) {
-        db.collection(TEACHERS_TABLE).document(teacherId)
-                .update("studentIds", FieldValue.arrayUnion(userId))
-                .addOnSuccessListener(aVoid -> Log.d("Database", "Student " + userId + " added to teacher's list: " + teacherId))
-                .addOnFailureListener(e -> Log.e("Database", "Error adding student to teacher's list", e));
+    /*public void addStudentsToCourse(List<String> studentIds, String teacherKey, String courseId, AddStudentCallback callback) {
+        DocumentReference courseRef = db.collection(USERS_TABLE).document(teacherKey)
+                .collection("courses").document(courseId);
+
+        // Add students to the course's enrolledStudents list
+        courseRef.update("enrolledStudents", FieldValue.arrayUnion(studentIds.toArray()))
+                .addOnSuccessListener(aVoid -> {
+                    // Add course reference to each student's enrolledCourses subcollection
+                    for (String studentId : studentIds) {
+                        db.collection(USERS_TABLE).document(studentId).collection("enrolledCourses")
+                                .document(courseId)
+                                .set(Collections.singletonMap("courseRef", courseRef))
+                                .addOnFailureListener(callback::onFailure); // Handle failure for individual student
+                    }
+                    callback.onSuccess();
+                })
+                .addOnFailureListener(callback::onFailure); // Handle failure for the course update
+    }*/
+
+    public void addStudentsToCourse(List<String> studentIds, String teacherKey, String courseId, AddStudentCallback callback) {
+        // Step 1: Query users based on `myId` values
+        db.collection(USERS_TABLE)
+                .whereIn("myId", studentIds) // Query users whose `myId` matches any of the given IDs
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful() && task.getResult() != null) {
+                        List<String> uidList = new ArrayList<>();
+                        for (QueryDocumentSnapshot document : task.getResult()) {
+                            uidList.add(document.getId()); // Add user `uid` to the list
+                        }
+
+                        // Step 2: Update course with uids
+                        DocumentReference courseRef = db.collection(USERS_TABLE)
+                                .document(teacherKey)
+                                .collection("courses")
+                                .document(courseId);
+
+                        courseRef.update("enrolledStudents", FieldValue.arrayUnion(uidList.toArray()))
+                                .addOnSuccessListener(aVoid -> {
+                                    // Step 3: Update enrolledCourses for each student
+                                    for (String uid : uidList) {
+                                        db.collection(USERS_TABLE).document(uid).collection("enrolledCourses")
+                                                .document(courseId)
+                                                .set(Collections.singletonMap("courseRef", courseRef))
+                                                .addOnFailureListener(callback::onFailure); // Handle failure for individual student
+                                    }
+                                    callback.onSuccess();
+                                })
+                                .addOnFailureListener(callback::onFailure); // Handle failure for the course update
+                    } else {
+                        callback.onFailure(task.getException() != null ? task.getException() : new Exception("Failed to fetch user documents"));
+                    }
+                });
     }
 
-    public void removePreApprovedEmail(String email, PreApprovedEmailCallback callback) {
-        db.collection(PRE_APPROVED_EMAILS_TABLE).document(email).delete()
-                .addOnSuccessListener(aVoid -> callback.onSuccess())
-                .addOnFailureListener(callback::onFailure);
+
+
+    // Callback Interface
+    public interface AddStudentCallback {
+        void onSuccess();
+        void onFailure(Exception e);
     }
 
+
+    //todo ensure this is storing the user correctly
     public void fetchUserData(String uid, UserFetchCallback callback) {
-        // Try fetching from the TEACHERS_TABLE
-        db.collection(TEACHERS_TABLE).document(uid).get()
+        db.collection(USERS_TABLE).document(uid).get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         DocumentSnapshot document = task.getResult();
                         if (document.exists()) {
                             User user = document.toObject(User.class);
                             if (user != null) {
-                                user.setAccount_type(1); // Lecturer account
                                 callback.onSuccess(user);
                             } else {
-                                callback.onFailure(new Exception("Lecturer data is null"));
+                                callback.onFailure(new Exception("User data is null"));
                             }
                         } else {
-                            // Try fetching from the STUDENTS_TABLE
-                            db.collection(STUDENTS_TABLE).document(uid).get()
-                                    .addOnSuccessListener(teacherDoc -> {
-                                        if (teacherDoc.exists()) {
-                                            User user = teacherDoc.toObject(User.class);
-                                            if (user != null) {
-                                                user.setAccount_type(0); // Student account
-                                                callback.onSuccess(user);
-                                            } else {
-                                                callback.onFailure(new Exception("Student data is null"));
-                                            }
-                                        } else {
-                                            User errorUser = new User();
-                                            errorUser.setAccount_type(-1); // Default to -1 for unknown type
-                                            callback.onFailure(new Exception("Document does not exist in Students or Lecturers table"));
-                                        }
-                                    })
-                                    .addOnFailureListener(callback::onFailure);
+                            callback.onFailure(new Exception("Document does not exist"));
                         }
                     } else {
                         callback.onFailure(task.getException());
@@ -224,45 +213,52 @@ public class Database {
         void onFailure(Exception e);
     }
 
-    public void checkAndCreateAccount(final String email, final String password, final User userData, final AuthCallBack callback) {
-        if (userData.getAccount_type() == 1) {
-            // Create account directly if the user is a teacher
-            createAccount(email, password, userData);
-        } else {
-            // Check for pre-approved emails for students
-            db.collection(PRE_APPROVED_EMAILS_TABLE).document(email).get().addOnCompleteListener(task -> {
-                if (task.isSuccessful()) {
-                    DocumentSnapshot document = task.getResult();
-                    if (document != null && document.exists()) {
-                        // Email is pre-approved, proceed to create account
-                        createAccount(email, password, userData);
-                    } else {
-                        // Email not pre-approved, notify the user
-                        Log.w("Database", "Email not pre-approved for account creation");
-                        callback.onCreateAccountComplete(false, "Your email has not been approved by a teacher.");
-                    }
-                } else {
-                    Log.e("Database", "Error checking pre-approved emails", task.getException());
-                    callback.onCreateAccountComplete(false, Objects.requireNonNull(task.getException()).getMessage());
-                }
-            });
-        }
-    }
+    public void addCourse(String teacherKey, String courseName, String description, AddCourseCallback callback) {
+        /*Map<String, Object> courseData = new HashMap<>();
+        courseData.put("courseName", courseName);
+        courseData.put("description", description);
+        courseData.put("enrolledStudents", new ArrayList<>());
+        courseData.put("files", new ArrayList<>());*/
 
+        // Create a new Course object
+        Course course = new Course();
+        course.setName(courseName);
+        course.setDescription(description);
+        course.setEnrolledStudents(new ArrayList<>());
+        course.setFiles(new ArrayList<>());
 
-    public void addPreApprovedEmail(String email, String courses, String teacherId, PreApprovedEmailCallback callback) {
-        Map<String, Object> data = new HashMap<>();
-        data.put("courses", courses);
-        data.put("teacherId", teacherId);
-
-        db.collection(PRE_APPROVED_EMAILS_TABLE).document(email).set(data)
-                .addOnSuccessListener(aVoid -> callback.onSuccess())
+        db.collection(USERS_TABLE).document(teacherKey).collection("courses")
+                .add(course)
+                .addOnSuccessListener(documentReference -> callback.onSuccess(documentReference.getId()))
                 .addOnFailureListener(callback::onFailure);
     }
 
-    public interface PreApprovedEmailCallback {
-        void onSuccess();
-
-        void onFailure(@NonNull Exception e);
+    public void fetchCourseList(String teacherKey, CourseListCallback callback){
+        db.collection(USERS_TABLE).document(teacherKey).collection("courses")
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful() && task.getResult() != null) {
+                        ArrayList<Course> courses = new ArrayList<>();
+                        for (QueryDocumentSnapshot document : task.getResult()) {
+                            Course course = document.toObject(Course.class);
+                            course.setId(document.getId()); // Set the document ID if needed
+                            courses.add(course);
+                        }
+                        callback.onSuccess(courses);
+                    } else {
+                        callback.onFailure(task.getException() != null ? task.getException() : new Exception("Failed to fetch courses"));
+                    }
+                });
     }
+
+    public interface AddCourseCallback {
+        void onSuccess(String courseId);
+        void onFailure(Exception e);
+    }
+
+    public interface CourseListCallback {
+        void onSuccess(ArrayList<Course> courses);
+        void onFailure(Exception e);
+    }
+
 }

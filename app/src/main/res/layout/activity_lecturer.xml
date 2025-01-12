@@ -1,9 +1,8 @@
-<?xml version="1.0" encoding="utf-8"?>
 <ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/a_futuristic_classroom"
+    android:background="@drawable/background"
     android:padding="16dp">
 
     <LinearLayout
@@ -11,21 +10,67 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <!-- הזנת שם הקורס -->
-        <EditText
-            android:id="@+id/courseNameInput"
+        <!-- קטע שם הקורס עם רקע לבן -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Enter Course Name"
-            android:layout_marginBottom="16dp" />
+            android:orientation="vertical"
+            android:background="#FFFFFF"
+            android:padding="16dp"
+            android:layout_marginBottom="16dp">
 
-        <!-- הזנת הודעה על החומר -->
-        <EditText
-            android:id="@+id/materialMessageInput"
+            <!-- הזנת שם הקורס -->
+            <EditText
+                android:id="@+id/courseNameInput"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Enter Course Name" />
+        </LinearLayout>
+
+        <!-- קטע הודעה עם רקע לבן -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Enter a message about the material"
-            android:layout_marginBottom="16dp" />
+            android:orientation="vertical"
+            android:background="#FFFFFF"
+            android:padding="16dp"
+            android:layout_marginBottom="16dp">
+
+            <!-- הזנת הודעה על החומר -->
+            <EditText
+                android:id="@+id/materialMessageInput"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Enter a message about the material" />
+        </LinearLayout>
+
+        <!-- קטע הערות כלליות עם רקע לבן -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="#FFFFFF"
+            android:padding="16dp"
+            android:layout_marginBottom="16dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="General Notes"
+                android:textSize="16sp"
+                android:paddingBottom="8dp" />
+
+            <!-- שדה הערות כלליות -->
+            <EditText
+                android:id="@+id/generalNotesInput"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Write general notes or link about the course for the user"
+                android:inputType="textMultiLine"
+                android:minLines="4"
+                android:gravity="top"
+                android:background="@android:drawable/edit_text" />
+        </LinearLayout>
 
         <!-- כפתור להעלאת קובץ -->
         <Button
@@ -33,6 +78,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Upload File"
+            android:backgroundTint="#008577"
+            android:textColor="#FFFFFF"
             android:layout_marginBottom="16dp" />
 
         <!-- כפתור לשליחת הודעה לצ'אט -->
@@ -41,6 +88,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Send Message to Chat"
+            android:backgroundTint="#008577"
+            android:textColor="#FFFFFF"
             android:layout_marginBottom="16dp" />
 
         <!-- כפתור ליצירת קורס -->
@@ -49,6 +98,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Create Course"
+            android:backgroundTint="#008577"
+            android:textColor="#FFFFFF"
             android:layout_marginBottom="16dp" />
 
         <!-- רשימת הודעות הצ'אט -->
