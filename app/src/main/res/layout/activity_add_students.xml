@@ -13,7 +13,7 @@
         android:layout_marginEnd="16dp"
         android:layout_marginRight="16dp"
         android:layout_marginBottom="16dp"
-        android:background="#FFFFFF"
+        android:background="@drawable/rounded_background"
         android:hint="Enter Student ID" />
 
     <Button
@@ -31,7 +31,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/btnAddStudent"
         android:layout_margin="16dp"
-        android:background="#FFFFFF"/>
+        android:background="@drawable/rounded_background"/>
 
     <Button
         android:id="@+id/btnFinish"

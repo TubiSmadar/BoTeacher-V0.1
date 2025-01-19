@@ -17,7 +17,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="8dp"
-            android:background="#F5F5F5"
+            android:background="@drawable/rounded_background"
             android:text="הערות כלליות"
             android:textSize="16sp"
             android:layout_marginBottom="16dp" />
