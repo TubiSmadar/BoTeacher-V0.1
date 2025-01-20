@@ -33,10 +33,10 @@ android {
 }
 
 dependencies {
-
+    implementation(libs.play)
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.ui.auth)
-
+    implementation(libs.okhttp)
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity)

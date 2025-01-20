@@ -15,6 +15,7 @@ firebaseFirestore = "25.1.1"
 firebaseStorage = "21.0.1"
 
 [libraries]
+okhttp = "com.squareup.okhttp3:okhttp:4.11.0"
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
 firebase-ui-auth = { module = "com.firebaseui:firebase-ui-auth", version.ref = "firebaseUiAuth" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -28,6 +29,7 @@ firebase-auth = { group = "com.google.firebase", name = "firebase-auth", version
 firebase-database = { group = "com.google.firebase", name = "firebase-database", version.ref = "firebaseDatabase" }
 firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore", version.ref = "firebaseFirestore" }
 firebase-storage = { group = "com.google.firebase", name = "firebase-storage", version.ref = "firebaseStorage" }
+play = { group = "com.google.android.gms", name = "play-services-auth", version = "20.7.0" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
