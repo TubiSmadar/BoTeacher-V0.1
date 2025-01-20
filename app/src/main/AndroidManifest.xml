@@ -53,9 +53,9 @@
             android:exported="true" />
 
         <!-- Course Content Activity -->
-        <!-- activity
+        <activity
             android:name="com.example.myapplication.View.CourseContentActivity"
-            android:exported="true" / -->
+            android:exported="true" />
 
         <!-- Add Student Activity -->
         <activity

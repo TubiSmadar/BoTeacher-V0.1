@@ -27,7 +27,7 @@ public class LecturerActivity extends AppCompatActivity {
         setContentView(R.layout.activity_lecturer);
         database = new Database();
 
-        EditText materialMessageInput = findViewById(R.id.materialMessageInput);
+        EditText descriptionInput = findViewById(R.id.generalNotesInput);
         EditText courseNameInput = findViewById(R.id.courseNameInput);
         Button createCourseButton = findViewById(R.id.btnCreateCourse);
         Button uploadFileButton = findViewById(R.id.btnUploadFile); // כפתור העלאת קובץ
@@ -37,7 +37,7 @@ public class LecturerActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 String courseName = courseNameInput.getText().toString();
-                String description = materialMessageInput.getText().toString();
+                String description = descriptionInput.getText().toString();
                 if (!courseName.isEmpty()) {
                     FirebaseUser fbUser = database.getCurrentUser();
                     if (fbUser == null) {

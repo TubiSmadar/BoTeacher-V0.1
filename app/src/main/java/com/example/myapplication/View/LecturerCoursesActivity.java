@@ -27,20 +27,17 @@ public class LecturerCoursesActivity extends AppCompatActivity {
     //private HashMap<String, ArrayList<String>> courseStudentsMap;
     private CourseAdapter adapter; // Custom adapter for displaying courses
 
-    private Database database = new Database();;
+    private Database database;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.list_course);
 
+        database = new Database();
+
         ListView coursesListView = findViewById(R.id.coursesListView);
         Button addCourseButton = findViewById(R.id.addCourseButton);
-
-//        coursesList = new ArrayList<>();
-//        courseStudentsMap = new HashMap<>();
-//        adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, coursesList);
-//        coursesListView.setAdapter(adapter);
 
         coursesList = new ArrayList<>();
         adapter = new CourseAdapter(this, coursesList);
@@ -49,6 +46,7 @@ public class LecturerCoursesActivity extends AppCompatActivity {
         FirebaseUser fbUser = database.getCurrentUser();
         if (fbUser == null) {
             Toast.makeText(LecturerCoursesActivity.this, "No user is signed in.", Toast.LENGTH_SHORT).show();
+            return; // Stop further execution
         }
         String uid = fbUser.getUid();
         fetchCourses(uid);
@@ -61,16 +59,21 @@ public class LecturerCoursesActivity extends AppCompatActivity {
 
         // מעבר למסך תוכן קורס כאשר לוחצים על קורס
         coursesListView.setOnItemClickListener((parent, view, position, id) -> {
-            //TODO
-            /*String selectedCourse = coursesList.get(position);
-            Intent intent = new Intent(LecturerCoursesActivity.this, CourseContentActivity.class);
-            intent.putExtra("courseName", selectedCourse);
-            intent.putStringArrayListExtra("studentsList", courseStudentsMap.getOrDefault(selectedCourse, new ArrayList<>()));
-            startActivity(intent);*/
+            if (coursesList != null && position >= 0 && position < coursesList.size()) {
+                Course selectedCourse = coursesList.get(position);
+                Toast.makeText(LecturerCoursesActivity.this, "Selected course: " + selectedCourse.getName(), Toast.LENGTH_SHORT).show();
+
+                Intent intent = new Intent(LecturerCoursesActivity.this, CourseContentActivity.class);
+                intent.putExtra("courseId", selectedCourse.getId());
+                intent.putExtra("teacherId", uid);
+                startActivity(intent);
+            } else {
+                Toast.makeText(LecturerCoursesActivity.this, "Invalid course selection", Toast.LENGTH_SHORT).show();
+            }
         });
 
         // קבלת נתונים ממסך AddStudentsActivity
-        handleIncomingIntent(getIntent());
+        //handleIncomingIntent(getIntent());
     }
 
     private void fetchCourses(String uid) {
@@ -92,36 +95,36 @@ public class LecturerCoursesActivity extends AppCompatActivity {
         });
     }
 
-    private void handleIncomingIntent(Intent intent) {
-        /*if (intent != null) {
-            String newCourse = intent.getStringExtra("newCourseName");
-            ArrayList<String> studentsList = intent.getStringArrayListExtra("studentsList");
-
-            if (newCourse != null && !newCourse.isEmpty()) {
-                coursesList.add(newCourse);
-                courseStudentsMap.put(newCourse, studentsList != null ? studentsList : new ArrayList<>());
-                adapter.notifyDataSetChanged();
-                Toast.makeText(this, "Course '" + newCourse + "' added!", Toast.LENGTH_SHORT).show();
-            }
-        }*/
-        String newCourseName = intent.getStringExtra("newCourseName");
-        if (newCourseName != null && !newCourseName.isEmpty()) {
-            FirebaseUser fbUser = database.getCurrentUser();
-            if (fbUser == null) {
-                Toast.makeText(LecturerCoursesActivity.this, "No user is signed in.", Toast.LENGTH_SHORT).show();
-            }
-            String uid = fbUser.getUid();
-            fetchCourses(uid); // Reload courses after adding a new one
-        }
-    }
-
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        if (requestCode == 1 && resultCode == RESULT_OK && data != null) {
-            handleIncomingIntent(data);
-        }
-    }
+//    private void handleIncomingIntent(Intent intent) {
+//        /*if (intent != null) {
+//            String newCourse = intent.getStringExtra("newCourseName");
+//            ArrayList<String> studentsList = intent.getStringArrayListExtra("studentsList");
+//
+//            if (newCourse != null && !newCourse.isEmpty()) {
+//                coursesList.add(newCourse);
+//                courseStudentsMap.put(newCourse, studentsList != null ? studentsList : new ArrayList<>());
+//                adapter.notifyDataSetChanged();
+//                Toast.makeText(this, "Course '" + newCourse + "' added!", Toast.LENGTH_SHORT).show();
+//            }
+//        }*/
+//        String newCourseName = intent.getStringExtra("newCourseName");
+//        if (newCourseName != null && !newCourseName.isEmpty()) {
+//            FirebaseUser fbUser = database.getCurrentUser();
+//            if (fbUser == null) {
+//                Toast.makeText(LecturerCoursesActivity.this, "No user is signed in.", Toast.LENGTH_SHORT).show();
+//            }
+//            String uid = fbUser.getUid();
+//            fetchCourses(uid); // Reload courses after adding a new one
+//        }
+//    }
+//
+//
+//    @Override
+//    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+//        super.onActivityResult(requestCode, resultCode, data);
+//
+//        if (requestCode == 1 && resultCode == RESULT_OK && data != null) {
+//            handleIncomingIntent(data);
+//        }
+//    }
 }

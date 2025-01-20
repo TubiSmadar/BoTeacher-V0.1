@@ -57,11 +57,11 @@ public class LoginActivity extends AppCompatActivity {
                             public void onSuccess(User user) {
                                 Toast.makeText(LoginActivity.this, "Welcome " + user.getFirstname(), Toast.LENGTH_SHORT).show();
                                 if (user.getAccount_type() == 1) {
-                                    Toast.makeText(LoginActivity.this, "Lecturer " + user.getFirstname(), Toast.LENGTH_SHORT).show();
-                                    Intent intent = new Intent(LoginActivity.this, LecturerActivity.class);
+                                    //Toast.makeText(LoginActivity.this, "Lecturer " + user.getFirstname(), Toast.LENGTH_SHORT).show();
+                                    Intent intent = new Intent(LoginActivity.this, LecturerCoursesActivity.class);
                                     startActivity(intent);
                                 } else if (user.getAccount_type() == 0) {
-                                    Toast.makeText(LoginActivity.this, "Student " + user.getFirstname(), Toast.LENGTH_SHORT).show();
+                                    //Toast.makeText(LoginActivity.this, "Student " + user.getFirstname(), Toast.LENGTH_SHORT).show();
                                     Intent intent = new Intent(LoginActivity.this, StudentActivity.class);
                                     startActivity(intent);
                                 } else {

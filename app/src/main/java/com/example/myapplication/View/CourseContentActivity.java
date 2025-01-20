@@ -1,4 +1,4 @@
-/*package com.example.myapplication.View;
+package com.example.myapplication.View;
 
 import android.content.Intent;
 import android.net.Uri;
@@ -13,27 +13,31 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.myapplication.Model.Course;
+import com.example.myapplication.Model.Database;
 import com.example.myapplication.R;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class CourseContentActivity extends AppCompatActivity {
 
     private static final int REQUEST_FILE_PICKER = 1;
     private static final int REQUEST_ADD_STUDENTS = 2;
 
-    private DatabaseHelper databaseHelper;
-    private String courseName;
+    private Database database;
+    private String courseId;
+    private String teacherId;
+    private Course course;
 
-    private ArrayList<String> filesList = new ArrayList<>();
-    private ArrayList<String> messagesList = new ArrayList<>();
-    private ArrayList<String> studentsList = new ArrayList<>(); // רשימת סטודנטים
+    private List<String> filesList;
+    private List<String> studentsList; // רשימת סטודנטים
 
-    private String generalNotes = "";
+    private String courseDescription;
 
     private TextView existingNotesView;
-    private ListView filesListView, messagesListView;
-    private EditText newNotesInput, newMessageInput;
+    private ListView filesListView;
+    private EditText newMessageInput, newNotesInput;
     private Button btnSaveNotes, btnUploadFile, btnSendMessage, btnAddStudents;
     private ArrayAdapter<String> messagesAdapter;
 
@@ -42,36 +46,55 @@ public class CourseContentActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_course_content);
 
-        databaseHelper = new DatabaseHelper(this);
-
-        // קבלת שם הקורס
-        courseName = getIntent().getStringExtra("courseName");
-        setTitle("תוכן הקורס: " + courseName);
+        courseId = getIntent().getStringExtra("courseId");
+        teacherId = getIntent().getStringExtra("teacherId");
+        database = new Database();
 
         // אתחול רכיבי ממשק
         existingNotesView = findViewById(R.id.existingNotesView);
         filesListView = findViewById(R.id.filesListView);
-        messagesListView = findViewById(R.id.messagesListView);
         newNotesInput = findViewById(R.id.newNotesInput);
-        newMessageInput = findViewById(R.id.newMessageInput);
+        //newMessageInput = findViewById(R.id.newMessageInput);
         btnSaveNotes = findViewById(R.id.btnSaveNotes);
         btnUploadFile = findViewById(R.id.btnUploadFile);
-        btnSendMessage = findViewById(R.id.btnSendMessage);
+        //btnSendMessage = findViewById(R.id.btnSendMessage);
         btnAddStudents = findViewById(R.id.btnAddStudents); // כפתור הוספת סטודנטים
 
-        // טעינת הודעות קודמות ממסד הנתונים
-        messagesList = databaseHelper.getMessages(courseName);
-        messagesAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, messagesList);
-        messagesListView.setAdapter(messagesAdapter);
+        // קבלת פרטי הקורס
+        database.fetchCourseInfo(teacherId, courseId, new Database.CourseInfoCallback() {
+            @Override
+            public void onSuccess(Course c) {
+                course = c;
+                setTitle("תוכן הקורס: " + course.getName());
+                filesList = course.getFiles();
+                studentsList = course.getEnrolledStudents();
+                courseDescription = course.getDescription();
+                // עדכון תצוגת הערות כלליות
+                updateNotesView();
 
-        // עדכון תצוגת הערות כלליות
-        updateNotesView();
+                // עדכון רשימות
+                updateFilesListView();
+            }
 
-        // עדכון רשימות
-        updateFilesListView();
+            @Override
+            public void onFailure(Exception e) {
+                Toast.makeText(CourseContentActivity.this, "Failed to fetch course: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                setTitle("תוכן הקורס: " + "Default");
+                filesList = new ArrayList<>();
+                studentsList = new ArrayList<>();
+                courseDescription = "";
+                // עדכון תצוגת הערות כלליות
+                updateNotesView();
+
+                // עדכון רשימות
+                updateFilesListView();
+            }
+        });
+
+
 
         // שמירת הערות חדשות
-        btnSaveNotes.setOnClickListener(v -> {
+        /*btnSaveNotes.setOnClickListener(v -> {
             String newNotes = newNotesInput.getText().toString();
             if (!newNotes.isEmpty()) {
                 generalNotes += newNotes + "\n";
@@ -81,36 +104,26 @@ public class CourseContentActivity extends AppCompatActivity {
             } else {
                 Toast.makeText(this, "אנא הזן הערות חדשות", Toast.LENGTH_SHORT).show();
             }
-        });
+        });*/
 
         // העלאת קובץ חדש
         btnUploadFile.setOnClickListener(v -> openFilePicker());
 
-        // שליחת הודעה חדשה ושמירה במסד הנתונים
-        btnSendMessage.setOnClickListener(v -> {
-            String newMessage = newMessageInput.getText().toString();
-            if (!newMessage.isEmpty()) {
-                databaseHelper.insertMessage(courseName, newMessage);
-                messagesList.add(newMessage);
-                messagesAdapter.notifyDataSetChanged();
-                newMessageInput.setText("");
-                Toast.makeText(this, "הודעה נשמרה בהצלחה", Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(this, "אנא הזן הודעה", Toast.LENGTH_SHORT).show();
-            }
-        });
+        //TODO send a notification to students list
 
         // מעבר למסך הוספת סטודנטים
         btnAddStudents.setOnClickListener(v -> {
             Intent intent = new Intent(CourseContentActivity.this, AddStudentsActivity.class);
-            intent.putExtra("courseName", courseName);
+            intent.putExtra("courseId", courseId);
+            intent.putExtra("teacherId", teacherId);
             startActivityForResult(intent, REQUEST_ADD_STUDENTS);
         });
     }
 
+    //TODO restrict to valid file types, use database storage function
     private void openFilePicker() {
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-        intent.setType("*/ /* *");
+        intent.setType("*/*");
         startActivityForResult(intent, REQUEST_FILE_PICKER);
     }
 
@@ -120,7 +133,7 @@ public class CourseContentActivity extends AppCompatActivity {
 
         if (requestCode == REQUEST_FILE_PICKER && resultCode == RESULT_OK && data != null) {
             Uri fileUri = data.getData();
-            if (fileUri != null) {
+            if (fileUri != null && fileUri.getLastPathSegment() != null) {
                 filesList.add(fileUri.getLastPathSegment());
                 updateFilesListView();
                 Toast.makeText(this, "קובץ הועלה בהצלחה: " + fileUri.getLastPathSegment(), Toast.LENGTH_SHORT).show();
@@ -134,17 +147,18 @@ public class CourseContentActivity extends AppCompatActivity {
             ArrayList<String> newStudentsList = data.getStringArrayListExtra("studentsList");
             if (newStudentsList != null && !newStudentsList.isEmpty()) {
                 studentsList.addAll(newStudentsList);
-                Toast.makeText(this, "Students added to " + courseName + "!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Students added to " + course.getName() + "!", Toast.LENGTH_SHORT).show();
             }
         }
     }
 
     private void updateNotesView() {
-        existingNotesView.setText(generalNotes.isEmpty() ? "אין הערות כלליות" : generalNotes);
+        existingNotesView.setText(courseDescription.isEmpty() ? "אין הערות כלליות" : courseDescription);
     }
 
+    //TODO retrieve files from file storage
     private void updateFilesListView() {
         ArrayAdapter<String> filesAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, filesList);
         filesListView.setAdapter(filesAdapter);
     }
-}*/
+}
