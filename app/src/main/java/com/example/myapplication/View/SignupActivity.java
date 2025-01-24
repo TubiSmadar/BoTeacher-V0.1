@@ -169,14 +169,26 @@ public class SignupActivity extends AppCompatActivity {
             if (task.isSuccessful()) {
                 FirebaseUser firebaseUser = auth.getCurrentUser();
                 if (firebaseUser != null) {
-                    User user = prepareUser(firebaseUser.getEmail());
-                    user.setFirstname(firebaseUser.getDisplayName());
-                    user.setMyId(firebaseUser.getUid());
-                    user.setAccount_type(1);
-                    database.saveUserData(user);
+                    database.checkUserExists(firebaseUser.getEmail(), new Database.UserExistsCallback() {
+                        @Override
+                        public void onUserExistsCheckComplete(boolean exists) {
+                            if (!exists) {
+                                // Redirect to UserDetailsActivity for first-time setup
+                                Intent intent = new Intent(SignupActivity.this, UserDetailsActivity.class);
+                                startActivity(intent);
+                                finish();
+                            } else {
+                                Toast.makeText(SignupActivity.this, "Welcome back!", Toast.LENGTH_SHORT).show();
+                                startActivity(new Intent(SignupActivity.this, MainActivity.class));
+                                finish();
+                            }
+                        }
 
-                    Toast.makeText(SignupActivity.this, "Sign-up successful!", Toast.LENGTH_SHORT).show();
-                    new Handler(Looper.getMainLooper()).postDelayed(this::finish, 2000);
+                        @Override
+                        public void onUserExistsCheckFailure(Exception e) {
+                            Toast.makeText(SignupActivity.this, "Error checking user: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    });
                 }
             } else {
                 Log.e("SignupActivity", "Firebase auth with Google failed", task.getException());
@@ -184,19 +196,20 @@ public class SignupActivity extends AppCompatActivity {
         });
     }
 
+
     private boolean checkInput() {
         return signupEmail.getText().length() > 0 && signupPassword.getText().length() >= 8;
     }
 
-    private User prepareUser(String email) { //, String password) {
+    private User prepareUser(String email) {
         User user = new User();
-        user.setEmail(email);
-        user.setFirstname(firstname.getText().toString());
-        user.setLastname(lastname.getText().toString());
-        //user.setPassword(password);
-        user.setMyId(Id_Number.getText().toString());
+        user.setEmail(email != null ? email : "unknown@example.com");
+        user.setFirstname(firstname.getText().toString().isEmpty() ? "Unknown" : firstname.getText().toString());
+        user.setLastname(lastname.getText().toString().isEmpty() ? "Unknown" : lastname.getText().toString());
+        user.setMyId(Id_Number.getText().toString().isEmpty() ? "N/A" : Id_Number.getText().toString());
         int accountType = accountTypeSwitch.isChecked() ? 1 : 0;
         user.setAccount_type(accountType);
         return user;
     }
+
 }
