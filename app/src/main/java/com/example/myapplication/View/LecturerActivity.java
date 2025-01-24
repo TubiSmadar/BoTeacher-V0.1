@@ -11,81 +11,78 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.myapplication.Model.Database;
+import com.example.myapplication.Model.User;
 import com.example.myapplication.R;
-import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.StorageReference;
-import com.google.firebase.storage.UploadTask;
-
-import com.google.android.gms.tasks.OnSuccessListener;
-
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
+import com.google.firebase.auth.FirebaseUser;
 
 public class LecturerActivity extends AppCompatActivity {
 
-    private static final int REQUEST_FILE_PICKER = 1;
-    private Uri fileUri;
-    StorageReference storageReference;
-
-    //TODO change to get user's name
-    String username = "test";
+    private static final int REQUEST_FILE_PICKER = 1; // מזהה לפעולה של בוחר קבצים
+    private Database database;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_lecturer);
+        database = new Database();
 
+        EditText descriptionInput = findViewById(R.id.generalNotesInput);
         EditText courseNameInput = findViewById(R.id.courseNameInput);
-        EditText materialMessageInput = findViewById(R.id.materialMessageInput);
-        Button uploadFileButton = findViewById(R.id.btnUploadFile);
-        Button sendMessageButton = findViewById(R.id.btnSendMessage);
         Button createCourseButton = findViewById(R.id.btnCreateCourse);
-
-        // Initialize Firebase Storage
-        storageReference = FirebaseStorage.getInstance().getReference();
-
-        // העלאת קובץ
-        uploadFileButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                openFilePicker();
-            }
-        });
-
-        // שליחת הודעה לצ'אט
-        sendMessageButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String message = materialMessageInput.getText().toString();
-                if (!message.isEmpty()) {
-                    Toast.makeText(LecturerActivity.this, "Message sent to chat: " + message, Toast.LENGTH_SHORT).show();
-                    materialMessageInput.setText("");
-                } else {
-                    Toast.makeText(LecturerActivity.this, "Please enter a message", Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
+        //Button uploadFileButton = findViewById(R.id.btnUploadFile); // כפתור העלאת קובץ
 
         // יצירת קורס
         createCourseButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 String courseName = courseNameInput.getText().toString();
+                String description = descriptionInput.getText().toString();
                 if (!courseName.isEmpty()) {
+                    FirebaseUser fbUser = database.getCurrentUser();
+                    if (fbUser == null) {
+                        Toast.makeText(LecturerActivity.this, "No user is signed in.", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    String uid = fbUser.getUid();
+                    //TODO add files?
+                    database.addCourse(uid, courseName, description, new Database.AddCourseCallback(){
 
-                    Toast.makeText(LecturerActivity.this, "Course '" + courseName + "' created", Toast.LENGTH_SHORT).show();
+                        @Override
+                        public void onSuccess(String courseId) {
+                            Toast.makeText(LecturerActivity.this, "Course " + courseName + " saved successfully", Toast.LENGTH_SHORT).show();
+                            // החזרת שם הקורס שנוצר ל-LecturerCoursesActivity
+                            Intent resultIntent = new Intent(LecturerActivity.this, LecturerCoursesActivity.class);
+                            resultIntent.putExtra("newCourseName", courseName);
+                            setResult(RESULT_OK, resultIntent);
+                            startActivity(resultIntent);
+                            finish(); // סגירת הפעילות
+                        }
+
+                        @Override
+                        public void onFailure(Exception e) {
+                            Toast.makeText(LecturerActivity.this, "Failed to save course: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    });
                 } else {
                     Toast.makeText(LecturerActivity.this, "Please enter a course name", Toast.LENGTH_SHORT).show();
                 }
             }
         });
+
+        // העלאת קובץ
+        /*uploadFileButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                openFilePicker();
+            }
+        });*/
     }
 
     // פתיחת בוחר קבצים
-    private void openFilePicker() {
+    /*private void openFilePicker() {
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-        intent.setType("*/*");
+        intent.setType("*/ /*"); // כל סוגי הקבצים
         startActivityForResult(intent, REQUEST_FILE_PICKER);
     }
 
@@ -94,35 +91,12 @@ public class LecturerActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
 
         if (requestCode == REQUEST_FILE_PICKER && resultCode == RESULT_OK && data != null) {
-            fileUri = data.getData();
+            Uri fileUri = data.getData();
             if (fileUri != null) {
-                uploadFileToFirebase(fileUri); // Upload the file
-
-                //Toast.makeText(this, "File selected: " + fileUri.getPath(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "File selected: " + fileUri.getPath(), Toast.LENGTH_SHORT).show();
             } else {
                 Toast.makeText(this, "File selection failed", Toast.LENGTH_SHORT).show();
             }
         }
-    }
-
-    private void uploadFileToFirebase(Uri fileUri){
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss", Locale.CANADA);
-        Date now = new Date();
-        String fileName = formatter.format(now);
-        storageReference = FirebaseStorage.getInstance().getReference("uploads/"+ username +"/" +fileName);
-
-        // Upload the file
-        storageReference.putFile(fileUri)
-                .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                    @Override
-                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                        storageReference.getDownloadUrl().addOnSuccessListener(uri -> {
-                            Toast.makeText(LecturerActivity.this, "File uploaded successfully. URL: " + uri.toString(), Toast.LENGTH_LONG).show();
-                        });
-                    }
-                })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(LecturerActivity.this, "File upload failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                });
-    }
+    }*/
 }

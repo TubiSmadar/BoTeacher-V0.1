@@ -33,9 +33,16 @@ android {
 }
 
 dependencies {
+    // OkHttp for HTTP requests
+    implementation("com.squareup.okhttp3:okhttp:4.9.3")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.9.3") // Optional: for logging HTTP requests
+
+    // Gson for JSON parsing
+    implementation("com.google.code.gson:gson:2.8.9")
 
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.ui.auth)
+
 
     implementation(libs.appcompat)
     implementation(libs.material)
@@ -44,6 +51,7 @@ dependencies {
     implementation(libs.firebase.auth)
     implementation(libs.firebase.database)
     implementation(libs.firebase.firestore)
+    implementation(libs.firebase.storage)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)

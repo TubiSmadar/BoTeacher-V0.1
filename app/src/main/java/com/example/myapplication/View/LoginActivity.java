@@ -45,43 +45,6 @@ public class LoginActivity extends AppCompatActivity {
 
     private void initVars() {
         database = new Database();
-
-        /*database.setAuthCallBack(new AuthCallBack() {
-            public void onLoginComplete(Task<AuthResult> task) {
-                if (task.isSuccessful()) {
-                    if (database.getCurrentUser() != null) {
-                        // Fetch user data with callback
-                        String uid = database.getCurrentUser().getUid();
-                        database.fetchUserData(uid, new Database.UserFetchCallback() {
-                            @Override
-                            public void onSuccess(User user) {
-                                Toast.makeText(LoginActivity.this, "Welcome " + user.getFirstname(), Toast.LENGTH_SHORT).show();
-                                //Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                                //startActivity(intent);
-                                //finish();
-                            }
-
-                            @Override
-                            public void onFailure(Exception e) {
-                                Toast.makeText(LoginActivity.this, "Failed to fetch user data", Toast.LENGTH_SHORT).show();
-                            }
-                        });
-                    } else {
-                        // Handle the case where login failed
-                        Toast.makeText(LoginActivity.this, "Login failed", Toast.LENGTH_SHORT).show();
-                    }
-                } else {
-                    String error = Objects.requireNonNull(task.getException()).getMessage();
-                    Toast.makeText(LoginActivity.this, error, Toast.LENGTH_SHORT).show();
-                }
-            }
-
-            @Override
-            public void onCreateAccountComplete(boolean status, String err) {
-
-            }
-        });*/
-
         database.setAuthCallBack(new AuthCallBack() {
             @Override
             public void onLoginComplete(Task<AuthResult> task) {
@@ -94,11 +57,11 @@ public class LoginActivity extends AppCompatActivity {
                             public void onSuccess(User user) {
                                 Toast.makeText(LoginActivity.this, "Welcome " + user.getFirstname(), Toast.LENGTH_SHORT).show();
                                 if (user.getAccount_type() == 1) {
-                                    Toast.makeText(LoginActivity.this, "Lecturer " + user.getFirstname(), Toast.LENGTH_SHORT).show();
-                                    Intent intent = new Intent(LoginActivity.this, LecturerActivity.class);
+                                    //Toast.makeText(LoginActivity.this, "Lecturer " + user.getFirstname(), Toast.LENGTH_SHORT).show();
+                                    Intent intent = new Intent(LoginActivity.this, LecturerCoursesActivity.class);
                                     startActivity(intent);
                                 } else if (user.getAccount_type() == 0) {
-                                    Toast.makeText(LoginActivity.this, "Student " + user.getFirstname(), Toast.LENGTH_SHORT).show();
+                                    //Toast.makeText(LoginActivity.this, "Student " + user.getFirstname(), Toast.LENGTH_SHORT).show();
                                     Intent intent = new Intent(LoginActivity.this, StudentActivity.class);
                                     startActivity(intent);
                                 } else {
@@ -159,33 +122,6 @@ public class LoginActivity extends AppCompatActivity {
                 } else {
                     // Perform login
                     database.loginUser(email, password);
-
-                    /*FirebaseUser currentUser = database.getCurrentUser();
-                    if (currentUser != null) {
-                        String uid = currentUser.getUid();
-
-                        // Fetch user data to determine account type
-                        database.fetchUserData(uid, new Database.UserFetchCallback() {
-                            @Override
-                            public void onSuccess(User user) {
-                                // Redirect based on account type
-                                if (user.getAccount_type() == 1) { // Teacher
-                                    Intent intent = new Intent(LoginActivity.this, LecturerActivity.class);
-                                    startActivity(intent);
-                                } else { // Student
-                                    Intent intent = new Intent(LoginActivity.this, StudentActivity.class);
-                                    startActivity(intent);
-                                }
-                                finish();
-                            }
-
-                            @Override
-                            public void onFailure(Exception e) {
-                                // Handle failure (e.g., user data doesn't exist or fetch failed)
-                                Toast.makeText(LoginActivity.this, "Failed to fetch user data: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                            }
-                        });
-                    }*/
 
                 }
             }
