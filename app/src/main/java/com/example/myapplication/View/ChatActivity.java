@@ -112,7 +112,7 @@ public class ChatActivity extends AppCompatActivity {
         JSONObject jsonBody = new JSONObject();
         try {
             jsonBody.put("student_id", studentId);
-            jsonBody.put("course_id", courseId);
+            jsonBody.put("course_id", "Syllabus0_1.pdf");
             jsonBody.put("message", message);
         } catch (Exception e) {
             callback.onResponse("Failed to create JSON body");

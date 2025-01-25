@@ -61,6 +61,8 @@
     <string name="shifts">Shifts</string>
     <string name="salary">Salary</string>
     <string name="remove">Remove</string>
+    <string name="default_web_client_id">126542571884-qe0fg738vsfgf6u21olj4u88of69u301.apps.googleusercontent.com</string>
+
     <string-array name="months_array">
         <item>January</item>
         <item>February</item>

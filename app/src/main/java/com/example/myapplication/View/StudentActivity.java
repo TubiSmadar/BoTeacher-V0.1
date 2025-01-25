@@ -17,6 +17,8 @@ import com.example.myapplication.Model.Database;
 import com.example.myapplication.R;
 import com.google.firebase.auth.FirebaseUser;
 
+import org.json.JSONObject;
+
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -39,7 +41,9 @@ public class StudentActivity extends AppCompatActivity {
 
     private CourseAdapter adapter; // Custom adapter for displaying courses
 
-    //private final String baseUrl = "http://10.0.2.2:5000"; // Flask server URL
+    private final String baseUrl = "http://10.0.2.2:5000"; // Flask server URL
+
+    private final OkHttpClient okHttpClient = new OkHttpClient();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -114,6 +118,58 @@ public class StudentActivity extends AppCompatActivity {
             }
         });
     }
+
+    //TODO work
+    /*private void fetchCourses(FetchCoursesCallback callback) {
+        // GET request to /student/courses
+        Request request = new Request.Builder()
+                .url(baseUrl + "/student/courses")
+                .get()
+                .build();
+
+        okHttpClient.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                runOnUiThread(() -> {
+                    Toast.makeText(StudentActivity.this, "Failed to fetch courses: " + e.getMessage(), Toast.LENGTH_SHORT).show();//showToast("Failed to fetch courses: " + e.getMessage());
+                    callback.onCoursesFetched(new ArrayList<>()); // return empty list
+                });
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                try (ResponseBody body = response.body()) {
+                    if (body == null) {
+                        runOnUiThread(() -> Toast.makeText(StudentActivity.this, "No response body", Toast.LENGTH_SHORT).show());//showToast("No response body"));
+                        callback.onCoursesFetched(new ArrayList<>());
+                        return;
+                    }
+                    String bodyString = body.string();
+                    JSONObject json = new JSONObject(bodyString);
+                    List<Pair<String, String>> courseList = new ArrayList<>();
+
+                    Iterator<String> keys = json.keys();
+                    while (keys.hasNext()) {
+                        String key = keys.next();
+                        String value = json.getString(key);
+                        courseList.add(new Pair<>(key, value));
+                    }
+
+                    runOnUiThread(() -> callback.onCoursesFetched(courseList));
+                } catch (Exception e) {
+                    runOnUiThread(() -> showToast("Invalid server response"));
+                    callback.onCoursesFetched(new ArrayList<>());
+                }
+            }
+        });
+    }
+
+    // ------------------------------------------------------
+    // Callback Interfaces
+    // ------------------------------------------------------
+    public interface FetchCoursesCallback {
+        void onCoursesFetched(List<Pair<String, String>> courses);
+    }*/
 
     /*public void uploadCourse(String courseName, List<String> fileUrls) {
         OkHttpClient client = new OkHttpClient();
