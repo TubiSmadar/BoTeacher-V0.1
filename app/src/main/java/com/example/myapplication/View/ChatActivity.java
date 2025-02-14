@@ -22,35 +22,37 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.example.myapplication.R;
+import com.example.myapplication.Controller.ChatRepository;
 
 import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.List;
 
-import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
-import okhttp3.ResponseBody;
 
 public class ChatActivity extends AppCompatActivity {
 
     private static final int REQUEST_CAMERA = 1;
     private static final int REQUEST_GALLERY = 2;
     private static final int PERMISSION_REQUEST_CODE = 100;
-    private final OkHttpClient okHttpClient = new OkHttpClient();
-    private final String baseUrl = "http://10.0.2.2:5000"; // Replace with your Flask server URL
+
+    // Create a ChatRepository with your baseUrl
+    // In real apps, you might inject it via a DI framework, or get from ViewModel, etc.
+    private final ChatRepository chatRepository = new ChatRepository(
+            new OkHttpClient(),
+            "http://10.0.2.2:5000"
+    );
+
     private TextView chatHistoryTextView;
     private EditText messageInput;
     private Button sendButton;
     private ImageView uploadImageButton;
-    private ImageView chatImageView; // להציג את התמונה
-    //TODO make it dynamic
-    private String courseId = "course123";
+    private ImageView chatImageView;
+
+    private String courseId;
+    private String courseName;
+    private String studentId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,8 +63,9 @@ public class ChatActivity extends AppCompatActivity {
         checkPermissions();
 
         // קבלת שם הקורס מתוך ה-Intent
-        String courseName = getIntent().getStringExtra("courseName");
-        //TODO get course ID from intent
+        courseName = getIntent().getStringExtra("courseName");
+        courseId = getIntent().getStringExtra("courseId");
+        studentId = getIntent().getStringExtra("studentId");
 
         // איתור רכיבי הממשק
         TextView welcomeTextView = findViewById(R.id.courseNameTextView);
@@ -85,11 +88,8 @@ public class ChatActivity extends AppCompatActivity {
             public void onClick(View v) {
                 String message = messageInput.getText().toString();
                 if (!message.isEmpty()) {
-                    sendMessage(courseId, message, response -> {
-                        chatHistoryTextView.append("אתה: " + message + "\n");
-                        chatHistoryTextView.append("בוט: " + response + "\n");
-                        messageInput.setText("");
-                    });
+                    // Now we call chatRepository.sendMessage(...) instead of doing OkHttp directly.
+                    sendMessage(studentId, courseId, message);
                 } else {
                     Toast.makeText(ChatActivity.this, "אנא כתוב הודעה", Toast.LENGTH_SHORT).show();
                 }
@@ -105,61 +105,27 @@ public class ChatActivity extends AppCompatActivity {
         });
     }
 
-    private void sendMessage(String courseId, String message, SendMessageCallback callback) {
-        // JSON body
-        JSONObject jsonBody = new JSONObject();
-        try {
-            jsonBody.put("student_id", "student123");
-            jsonBody.put("course_id", courseId);
-            jsonBody.put("message", message);
-        } catch (Exception e) {
-            callback.onResponse("Failed to create JSON body");
-            return;
-        }
-
-        RequestBody requestBody = RequestBody.create(
-                jsonBody.toString(),
-                MediaType.parse("application/json")
-        );
-
-        Request request = new Request.Builder()
-                .url(baseUrl + "/student/chat")
-                .post(requestBody)
-                .addHeader("Content-Type", "application/json")
-                .build();
-
-        okHttpClient.newCall(request).enqueue(new Callback() {
-            @Override
-            public void onFailure(Call call, IOException e) {
-                runOnUiThread(() ->
-                        callback.onResponse("Failed to send message: " + e.getMessage())
-                );
-            }
-
-            @Override
-            public void onResponse(Call call, Response response) throws IOException {
-                try (ResponseBody body = response.body()) {
-                    if (body == null) {
-                        runOnUiThread(() ->
-                                callback.onResponse("Server returned empty response")
-                        );
-                        return;
-                    }
-                    String responseString = body.string();
-                    JSONObject jsonResponse = new JSONObject(responseString);
-                    String reply = jsonResponse.optString("response", "No response");
-
-                    runOnUiThread(() ->
-                            callback.onResponse(reply)
-                    );
-                } catch (Exception e) {
-                    runOnUiThread(() ->
-                            callback.onResponse("Failed to parse response: " + e.getMessage())
-                    );
+    private void sendMessage(String studentId, String courseId, String message) {
+        chatRepository.sendMessage(studentId, courseId, message, result -> {
+            // Because the callback is on a background thread, use runOnUiThread to update UI
+            runOnUiThread(() -> {
+                // If it doesn't start with "Failed" or "No", we consider it a normal bot reply
+                if (result.startsWith("Failed") || result.contains("empty response") || result.contains("parse")) {
+                    // Show an error toast or partial message
+                    Toast.makeText(ChatActivity.this, result, Toast.LENGTH_SHORT).show();
+                } else {
+                    // We consider it a success or "No response"
+                    // Update chatHistory
+                    chatHistoryTextView.append("אתה: " + message + "\n");
+                    chatHistoryTextView.append("בוט: " + result + "\n");
+                    messageInput.setText("");
                 }
-            }
+            });
         });
     }
+
+    // The rest of your code remains the same...
+    // Check permissions, openCamera, openGallery, onActivityResult, etc.
 
     // בדיקת הרשאות
     private void checkPermissions() {
@@ -191,7 +157,6 @@ public class ChatActivity extends AppCompatActivity {
         }
     }
 
-    // הצגת דיאלוג לבחירת פעולה
     private void showImagePickerDialog() {
         String[] options = {"צלם תמונה", "בחר תמונה מהגלריה"};
 
@@ -207,7 +172,6 @@ public class ChatActivity extends AppCompatActivity {
                 .show();
     }
 
-    // פתיחת מצלמה
     private void openCamera() {
         Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         if (cameraIntent.resolveActivity(getPackageManager()) != null) {
@@ -215,7 +179,6 @@ public class ChatActivity extends AppCompatActivity {
         }
     }
 
-    // פתיחת גלריה
     private void openGallery() {
         Intent galleryIntent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
         startActivityForResult(galleryIntent, REQUEST_GALLERY);
@@ -227,12 +190,10 @@ public class ChatActivity extends AppCompatActivity {
 
         if (resultCode == RESULT_OK) {
             if (requestCode == REQUEST_CAMERA && data != null) {
-                // הצגת התמונה שצולמה
                 Bitmap photo = (Bitmap) data.getExtras().get("data");
                 chatImageView.setImageBitmap(photo);
                 chatHistoryTextView.append("תמונה צולמה בהצלחה.\n");
             } else if (requestCode == REQUEST_GALLERY && data != null) {
-                // הצגת התמונה שנבחרה
                 Uri selectedImage = data.getData();
                 try {
                     Bitmap bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), selectedImage);
@@ -246,9 +207,7 @@ public class ChatActivity extends AppCompatActivity {
         }
     }
 
-    // ------------------------------------------------------
-    // Callback Interfaces
-    // ------------------------------------------------------
+    // (Optional) callback interfaces or other code can remain here if you want...
     public interface FetchCoursesCallback {
         void onCoursesFetched(List<Pair<String, String>> courses);
     }
