@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="16dp"
-    android:background="@drawable/background"
+    android:background="@drawable/a_futuristic_classroom"
     tools:ignore="ExtraText">
 
     <!-- הודעת ברוך הבא -->
@@ -20,17 +20,16 @@
         android:padding="16dp"
         android:textColor="#FFFFFF" />
 
-    <!-- היסטוריית צ'אט עם רקע לבן -->
+    <!-- היסטוריית צ'אט -->
     <TextView
         android:id="@+id/chatHistoryTextView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:padding="8dp"
-        android:scrollbars="vertical"
-        android:textSize="16sp"
-        android:textColor="#000000"
-        android:background="#FFFFFF" />
+    android:padding="8dp"
+    android:scrollbars="vertical"
+    android:textSize="16sp"
+    android:textColor="#000000" />
 
     <!-- הצגת תמונה -->
     <ImageView

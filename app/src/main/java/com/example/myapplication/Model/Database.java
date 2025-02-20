@@ -1,5 +1,7 @@
 package com.example.myapplication.Model;
 
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 
 import com.example.myapplication.Controller.AuthCallBack;
@@ -13,7 +15,6 @@ import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -51,6 +52,16 @@ public class Database {
     public FirebaseUser getCurrentUser() {
         return mAuth.getCurrentUser();
     }
+
+    /*public void loginUser(String email, String password) {
+        this.mAuth.signInWithEmailAndPassword(email, password)
+                .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        authCallBack.onLoginComplete(task);
+                    }
+                });
+    }*/
 
     public void loginUser(String email, String password) {
         this.mAuth.signInWithEmailAndPassword(email, password)
@@ -121,8 +132,8 @@ public class Database {
         void onUserExistsCheckFailure(Exception e);
     }
 
-    /*public void addStudentsToCourse(List<String> studentIds, String teacherKey, String courseId, AddStudentCallback callback) {
-        DocumentReference courseRef = db.collection(USERS_TABLE).document(teacherKey)
+    public void addStudentsToCourse(List<String> studentIds, String teacherId, String courseId, AddStudentCallback callback) {
+        DocumentReference courseRef = db.collection(USERS_TABLE).document(teacherId)
                 .collection("courses").document(courseId);
 
         // Add students to the course's enrolledStudents list
@@ -138,44 +149,7 @@ public class Database {
                     callback.onSuccess();
                 })
                 .addOnFailureListener(callback::onFailure); // Handle failure for the course update
-    }*/
-
-    public void addStudentsToCourse(List<String> studentIds, String teacherKey, String courseId, AddStudentCallback callback) {
-        // Step 1: Query users based on `myId` values
-        db.collection(USERS_TABLE)
-                .whereIn("myId", studentIds) // Query users whose `myId` matches any of the given IDs
-                .get()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful() && task.getResult() != null) {
-                        List<String> uidList = new ArrayList<>();
-                        for (QueryDocumentSnapshot document : task.getResult()) {
-                            uidList.add(document.getId()); // Add user `uid` to the list
-                        }
-
-                        // Step 2: Update course with uids
-                        DocumentReference courseRef = db.collection(USERS_TABLE)
-                                .document(teacherKey)
-                                .collection("courses")
-                                .document(courseId);
-
-                        courseRef.update("enrolledStudents", FieldValue.arrayUnion(uidList.toArray()))
-                                .addOnSuccessListener(aVoid -> {
-                                    // Step 3: Update enrolledCourses for each student
-                                    for (String uid : uidList) {
-                                        db.collection(USERS_TABLE).document(uid).collection("enrolledCourses")
-                                                .document(courseId)
-                                                .set(Collections.singletonMap("courseRef", courseRef))
-                                                .addOnFailureListener(callback::onFailure); // Handle failure for individual student
-                                    }
-                                    callback.onSuccess();
-                                })
-                                .addOnFailureListener(callback::onFailure); // Handle failure for the course update
-                    } else {
-                        callback.onFailure(task.getException() != null ? task.getException() : new Exception("Failed to fetch user documents"));
-                    }
-                });
     }
-
 
 
     // Callback Interface
@@ -213,51 +187,21 @@ public class Database {
         void onFailure(Exception e);
     }
 
-    public void addCourse(String teacherKey, String courseName, String description, AddCourseCallback callback) {
-        /*Map<String, Object> courseData = new HashMap<>();
+    public void addCourse(String teacherId, String courseName, String description, AddCourseCallback callback) {
+        Map<String, Object> courseData = new HashMap<>();
         courseData.put("courseName", courseName);
         courseData.put("description", description);
         courseData.put("enrolledStudents", new ArrayList<>());
-        courseData.put("files", new ArrayList<>());*/
+        courseData.put("files", new ArrayList<>());
 
-        // Create a new Course object
-        Course course = new Course();
-        course.setName(courseName);
-        course.setDescription(description);
-        course.setEnrolledStudents(new ArrayList<>());
-        course.setFiles(new ArrayList<>());
-
-        db.collection(USERS_TABLE).document(teacherKey).collection("courses")
-                .add(course)
+        db.collection(USERS_TABLE).document(teacherId).collection("courses")
+                .add(courseData)
                 .addOnSuccessListener(documentReference -> callback.onSuccess(documentReference.getId()))
                 .addOnFailureListener(callback::onFailure);
     }
 
-    public void fetchCourseList(String teacherKey, CourseListCallback callback){
-        db.collection(USERS_TABLE).document(teacherKey).collection("courses")
-                .get()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful() && task.getResult() != null) {
-                        ArrayList<Course> courses = new ArrayList<>();
-                        for (QueryDocumentSnapshot document : task.getResult()) {
-                            Course course = document.toObject(Course.class);
-                            course.setId(document.getId()); // Set the document ID if needed
-                            courses.add(course);
-                        }
-                        callback.onSuccess(courses);
-                    } else {
-                        callback.onFailure(task.getException() != null ? task.getException() : new Exception("Failed to fetch courses"));
-                    }
-                });
-    }
-
     public interface AddCourseCallback {
         void onSuccess(String courseId);
-        void onFailure(Exception e);
-    }
-
-    public interface CourseListCallback {
-        void onSuccess(ArrayList<Course> courses);
         void onFailure(Exception e);
     }
 
