@@ -1,4 +1,4 @@
-/*package com.example.myapplication.View;
+package com.example.myapplication.View;
 
 import android.content.Intent;
 import android.net.Uri;
@@ -147,4 +147,4 @@ public class CourseContentActivity extends AppCompatActivity {
         ArrayAdapter<String> filesAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, filesList);
         filesListView.setAdapter(filesAdapter);
     }
-}*/
+}
