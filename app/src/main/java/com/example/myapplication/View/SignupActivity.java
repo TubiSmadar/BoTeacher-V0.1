@@ -32,6 +32,7 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 public class SignupActivity extends AppCompatActivity {
     private ActivityResultLauncher<Intent> googleSignInLauncher;
@@ -45,6 +46,8 @@ public class SignupActivity extends AppCompatActivity {
     private Database database;
     private GoogleSignInClient googleSignInClient;
     private SignInButton googleSignInButton;
+
+    private String fcmToken;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,6 +69,7 @@ public class SignupActivity extends AppCompatActivity {
         Id_Number = findViewById(R.id.Id_Number);
         accountTypeSwitch = findViewById(R.id.switchAccountType);
         googleSignInButton = findViewById(R.id.googleSignInButton);
+        fcmToken = "";
     }
 
     private void init() {
@@ -118,6 +122,25 @@ public class SignupActivity extends AppCompatActivity {
                 if (status) {
                     Log.d("SignupActivity", "Account created successfully");
                     Toast.makeText(SignupActivity.this, "Account created successfully", Toast.LENGTH_SHORT).show();
+
+                    // Get the FCM Token
+                    FirebaseMessaging.getInstance().getToken()
+                            .addOnCompleteListener(task -> {
+                                if (!task.isSuccessful()) {
+                                    Log.w("SignupActivity", "Fetching FCM registration token failed", task.getException());
+                                    return;
+                                }
+
+                                // Get the token
+                                String token = task.getResult();
+                                Log.d("SignupActivity", "FCM Token: " + token);
+
+                                // Update the user's FCM token in Firestore
+                                String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+                                //database.updateUserFcmToken(userId, token);
+                                fcmToken = token;
+                            });
+
                     finish();
                 } else {
                     Log.e("SignupActivity", "Account creation failed: " + err);
@@ -205,6 +228,7 @@ public class SignupActivity extends AppCompatActivity {
         user.setFirstname(firstname.getText().toString().isEmpty() ? "Unknown" : firstname.getText().toString());
         user.setLastname(lastname.getText().toString().isEmpty() ? "Unknown" : lastname.getText().toString());
         user.setMyId(Id_Number.getText().toString().isEmpty() ? "N/A" : Id_Number.getText().toString());
+        user.setFcmToken(fcmToken);
         int accountType = accountTypeSwitch.isChecked() ? 1 : 0;
         user.setAccount_type(accountType);
         return user;

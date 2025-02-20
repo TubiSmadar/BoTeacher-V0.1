@@ -12,8 +12,18 @@ public class User extends FirebaseKey implements Serializable {
 
     private String myId;
 
+    private String fcmToken;
+
     public User() {
         //this.account_type = 0;
+    }
+
+    public String getFcmToken() {
+        return fcmToken;
+    }
+
+    public void setFcmToken(String token) {
+        this.fcmToken = token;
     }
 
     public String getMyId() {

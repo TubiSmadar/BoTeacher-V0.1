@@ -8,14 +8,24 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.myapplication.Model.Course;
 import com.example.myapplication.Controller.Database;
 import com.example.myapplication.R;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 public class AddStudentsActivity extends AppCompatActivity {
 
@@ -82,6 +92,22 @@ public class AddStudentsActivity extends AppCompatActivity {
                         if (isFinishing() || isDestroyed()) return; // Check activity state
                         studentNameInput.setText("");
                         Toast.makeText(AddStudentsActivity.this, "Students added!", Toast.LENGTH_SHORT).show();
+
+                        // Fetch FCM tokens for each student added
+                        database.getFcmToken(studentsList, new Database.FcmTokenCallback() {
+                            @Override
+                            public void onTokenReceived(List<String> tokens) {
+                                // Send push notification
+                                for(String token : tokens) {
+                                    sendPushNotification(token, "Added to Course", "You have been added to " + course.getName());
+                                }
+                            }
+
+                            @Override
+                            public void onFailure(Exception e) {
+                                Toast.makeText(AddStudentsActivity.this, "Failed to get token for " + studentId, Toast.LENGTH_SHORT).show();
+                            }
+                        });
                     }
 
                     @Override
@@ -106,4 +132,42 @@ public class AddStudentsActivity extends AppCompatActivity {
             finish();
         });
     }
+
+    private void sendPushNotification(String token, String title, String message) {
+        OkHttpClient client = new OkHttpClient();
+        String jsonBody = "{"
+                + "\"to\": \"" + token + "\","
+                + "\"notification\": {"
+                + "\"title\": \"" + title + "\","
+                + "\"body\": \"" + message + "\""
+                + "}"
+                + "}";
+
+        RequestBody body = RequestBody.create(jsonBody, MediaType.parse("application/json"));
+        Request request = new Request.Builder()
+                .url("https://fcm.googleapis.com/fcm/send")
+                .post(body)
+                .addHeader("Authorization", "key=YOUR_SERVER_KEY")
+                .addHeader("Content-Type", "application/json")
+                .build();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                e.printStackTrace();
+            }
+
+            @Override
+            public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    //Log.d("Notification", "Notification sent successfully");
+                    Toast.makeText(AddStudentsActivity.this,  "Notification sent successfully", Toast.LENGTH_SHORT).show();
+                } else {
+                    //Log.e("Notification", "Failed to send notification: " + response.message());
+                    Toast.makeText(AddStudentsActivity.this,  "Failed to send notification: " + response.message(), Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+    }
+
 }
