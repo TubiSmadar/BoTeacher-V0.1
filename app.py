@@ -9,6 +9,7 @@ import PyPDF2
 import docx
 import uuid
 from collections import defaultdict
+from openai import OpenAI
 
 # --- Firebase Admin imports ---
 import firebase_admin
@@ -27,10 +28,10 @@ if not cred_path:
 cred = credentials.Certificate(cred_path)
 firebase_admin.initialize_app(cred)
 db = firestore.client()
-
-# Initialize OpenAI API client
-openai.api_key = os.getenv("OPENAI_API_KEY")
-# We now use openai.ChatCompletion.create() later—no separate client object is needed
+client = OpenAI()
+client.api_key = os.getenv("OPENAI_API_KEY")
+# # Initialize OpenAI API client
+# openai.api_key = os.getenv("OPENAI_API_KEY")
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -200,7 +201,7 @@ def student_chat():
 
     try:
         # Use OpenAI ChatCompletion API to generate a response
-        response = openai.ChatCompletion.create(
+        response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
                 {"role": "system", "content": f"Use the following course content to answer student queries:\n{course_data[:4000]}"}, #changed from course_data['content']
