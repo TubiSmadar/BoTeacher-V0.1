@@ -4,7 +4,6 @@ import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -12,28 +11,45 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.myapplication.Controller.AuthCallBack;
-import com.example.myapplication.Model.Database;
+import com.example.myapplication.Controller.Database;
 import com.example.myapplication.Model.User;
 import com.example.myapplication.R;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.common.SignInButton;
+import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.GoogleAuthProvider;
 
 public class SignupActivity extends AppCompatActivity {
-    EditText firstname, lastname, signupEmail, signupPassword;
-    EditText Id_Number;
+    private ActivityResultLauncher<Intent> googleSignInLauncher;
+
+    EditText firstname, lastname, signupEmail, signupPassword, Id_Number;
     TextView txtV_button_back;
     Button signupButton;
     ImageButton backButton;
     @SuppressLint("UseSwitchCompatOrMaterialCode")
     Switch accountTypeSwitch;
     private Database database;
+    private GoogleSignInClient googleSignInClient;
+    private SignInButton googleSignInButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        FirebaseApp.initializeApp(this);
         setContentView(R.layout.register);
         findV();
         init();
@@ -49,125 +65,146 @@ public class SignupActivity extends AppCompatActivity {
         backButton = findViewById(R.id.customBackButton);
         Id_Number = findViewById(R.id.Id_Number);
         accountTypeSwitch = findViewById(R.id.switchAccountType);
+        googleSignInButton = findViewById(R.id.googleSignInButton);
     }
 
     private void init() {
         database = new Database();
+        FirebaseAuth.getInstance().signOut();
+
+        // Configure Google Sign-In
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestIdToken("126542571884-qe0fg738vsfgf6u21olj4u88of69u301.apps.googleusercontent.com") // Ensure correct Web Client ID
+                .requestEmail()
+                .build();
+
+        googleSignInClient = GoogleSignIn.getClient(this, gso);
+
+        googleSignInLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == RESULT_OK) {
+                        Log.d("SignupActivity", "Google Sign-In Intent result received.");
+                        Intent data = result.getData();
+                        Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
+                        try {
+                            GoogleSignInAccount account = task.getResult(ApiException.class);
+                            if (account != null) {
+                                Log.d("SignupActivity", "Google Sign-In successful: " + account.getEmail());
+                                firebaseAuthWithGoogle(account.getIdToken());
+                            }
+                        } catch (ApiException e) {
+                            Log.e("SignupActivity", "Google Sign-In failed", e);
+                            Toast.makeText(this, "Google Sign-In failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    } else {
+                        Log.e("SignupActivity", "Google Sign-In cancelled or failed with result code: " + result.getResultCode());
+                    }
+                }
+        );
+
+        googleSignInButton.setOnClickListener(v -> {
+            Log.d("SignupActivity", "Google Sign-In button clicked.");
+            Intent signInIntent = googleSignInClient.getSignInIntent();
+            googleSignInLauncher.launch(signInIntent);
+        });
+
         database.setAuthCallBack(new AuthCallBack() {
             @Override
-            public void onLoginComplete(Task<AuthResult> task) {
-
-            }
-
+            public void onLoginComplete(Task<AuthResult> task) {}
 
             @Override
             public void onCreateAccountComplete(boolean status, String err) {
                 if (status) {
                     Log.d("SignupActivity", "Account created successfully");
                     Toast.makeText(SignupActivity.this, "Account created successfully", Toast.LENGTH_SHORT).show();
-                    finish(); // Close activity or redirect
+                    finish();
                 } else {
                     Log.e("SignupActivity", "Account creation failed: " + err);
                     Toast.makeText(SignupActivity.this, "Error: " + err, Toast.LENGTH_LONG).show();
                 }
             }
-
         });
 
-        signupButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (!checkInput()) {
-                    Toast.makeText(SignupActivity.this, "Error CheckInput", Toast.LENGTH_LONG).show();
-                    return;
+        signupButton.setOnClickListener(v -> {
+            if (!checkInput()) {
+                Toast.makeText(SignupActivity.this, "Error CheckInput", Toast.LENGTH_LONG).show();
+                return;
+            }
+
+            String email = signupEmail.getText().toString();
+            String password = signupPassword.getText().toString();
+
+            database.checkUserExists(email, new Database.UserExistsCallback() {
+                @Override
+                public void onUserExistsCheckComplete(boolean exists) {
+                    if (exists) {
+                        Toast.makeText(SignupActivity.this, "User already exists with this email", Toast.LENGTH_SHORT).show();
+                    } else {
+                        User user = prepareUser(email);
+                        database.createAccount(email, password, user);
+                    }
                 }
 
-                String email = signupEmail.getText().toString();
-                String password = signupPassword.getText().toString();
-
-                // Check if user already exists
-                database.checkUserExists(email, new Database.UserExistsCallback() {
-                    @Override
-                    public void onUserExistsCheckComplete(boolean exists) {
-                        if (exists) {
-                            // User already exists, show error message
-                            Toast.makeText(SignupActivity.this, "User already exists with this email", Toast.LENGTH_SHORT).show();
-                        } else {
-                            // User doesn't exist, proceed with account creation
-                            User user = prepareUser(email);
-
-                            // Modified call to include callback handling
-                            database.createAccount(email, password, user);
-                        }
-                    }
-
-                    @Override
-                    public void onUserExistsCheckFailure(Exception e) {
-                        // Handle failure
-                        Toast.makeText(SignupActivity.this, "Failed to check user existence: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                    }
-                });
-            }
+                @Override
+                public void onUserExistsCheckFailure(Exception e) {
+                    Toast.makeText(SignupActivity.this, "Failed to check user existence: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            });
         });
 
-        txtV_button_back.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(SignupActivity.this, MainActivity.class);
-                startActivity(intent);
-                finish();
-            }
+        backButton.setOnClickListener(view -> {
+            Intent intent = new Intent(SignupActivity.this, MainActivity.class);
+            startActivity(intent);
+            finish();
         });
-
-        backButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(SignupActivity.this, MainActivity.class);
-                startActivity(intent);
-                finish();
-            }
-        });
-
-        txtV_button_back.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                // Redirect to LoginActivity
-                Intent intent = new Intent(SignupActivity.this, LoginActivity.class);
-                startActivity(intent);
-                finish();
-            }
-        });
-
-
     }
+
+    private void firebaseAuthWithGoogle(String idToken) {
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        AuthCredential credential = GoogleAuthProvider.getCredential(idToken, null);
+        auth.signInWithCredential(credential).addOnCompleteListener(this, task -> {
+            if (task.isSuccessful()) {
+                FirebaseUser firebaseUser = auth.getCurrentUser();
+                if (firebaseUser != null) {
+                    database.checkUserExists(firebaseUser.getEmail(), new Database.UserExistsCallback() {
+                        @Override
+                        public void onUserExistsCheckComplete(boolean exists) {
+                            if (!exists) {
+                                // Redirect to UserDetailsActivity for first-time setup
+                                Intent intent = new Intent(SignupActivity.this, UserDetailsActivity.class);
+                                startActivity(intent);
+                                finish();
+                            } else {
+                                Toast.makeText(SignupActivity.this, "Welcome back!", Toast.LENGTH_SHORT).show();
+                                startActivity(new Intent(SignupActivity.this, MainActivity.class));
+                                finish();
+                            }
+                        }
+
+                        @Override
+                        public void onUserExistsCheckFailure(Exception e) {
+                            Toast.makeText(SignupActivity.this, "Error checking user: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                }
+            } else {
+                Log.e("SignupActivity", "Firebase auth with Google failed", task.getException());
+            }
+        });
+    }
+
 
     private boolean checkInput() {
-
-        String email = signupEmail.getText().toString();
-        String password = signupPassword.getText().toString();
-
-        User user = prepareUser(email);
-
-        if (!user.isValid()) {
-            Toast.makeText(SignupActivity.this, "Please fill all user info!", Toast.LENGTH_SHORT).show();
-            return false;
-        }
-
-        if (password.length() < 8) {
-            Toast.makeText(SignupActivity.this, "Password must be at least 8 characters", Toast.LENGTH_SHORT).show();
-            return false;
-        }
-
-        return true;
+        return signupEmail.getText().length() > 0 && signupPassword.getText().length() >= 8;
     }
 
-    private User prepareUser(String email){ //, String password) {
+    private User prepareUser(String email) {
         User user = new User();
-        user.setEmail(email);
-        user.setFirstname(firstname.getText().toString());
-        user.setLastname(lastname.getText().toString());
-        //user.setPassword(password);
-        user.setMyId(Id_Number.getText().toString());
+        user.setEmail(email != null ? email : "unknown@example.com");
+        user.setFirstname(firstname.getText().toString().isEmpty() ? "Unknown" : firstname.getText().toString());
+        user.setLastname(lastname.getText().toString().isEmpty() ? "Unknown" : lastname.getText().toString());
+        user.setMyId(Id_Number.getText().toString().isEmpty() ? "N/A" : Id_Number.getText().toString());
         int accountType = accountTypeSwitch.isChecked() ? 1 : 0;
         user.setAccount_type(accountType);
         return user;

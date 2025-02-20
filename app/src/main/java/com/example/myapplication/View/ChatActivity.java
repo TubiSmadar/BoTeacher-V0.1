@@ -124,9 +124,6 @@ public class ChatActivity extends AppCompatActivity {
         });
     }
 
-    // The rest of your code remains the same...
-    // Check permissions, openCamera, openGallery, onActivityResult, etc.
-
     // בדיקת הרשאות
     private void checkPermissions() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED ||
@@ -205,14 +202,5 @@ public class ChatActivity extends AppCompatActivity {
                 }
             }
         }
-    }
-
-    // (Optional) callback interfaces or other code can remain here if you want...
-    public interface FetchCoursesCallback {
-        void onCoursesFetched(List<Pair<String, String>> courses);
-    }
-
-    public interface SendMessageCallback {
-        void onResponse(String response);
     }
 }

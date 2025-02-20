@@ -2,8 +2,6 @@ package com.example.myapplication.View;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -11,14 +9,12 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.myapplication.Model.Course;
-import com.example.myapplication.Model.CourseAdapter;
-import com.example.myapplication.Model.Database;
-import com.example.myapplication.Model.User;
+import com.example.myapplication.Controller.CourseAdapter;
+import com.example.myapplication.Controller.Database;
 import com.example.myapplication.R;
 import com.google.firebase.auth.FirebaseUser;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
 public class LecturerCoursesActivity extends AppCompatActivity {
 

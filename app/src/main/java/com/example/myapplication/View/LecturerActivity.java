@@ -1,18 +1,15 @@
 package com.example.myapplication.View;
 
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.myapplication.Model.Database;
-import com.example.myapplication.Model.User;
+import com.example.myapplication.Controller.Database;
 import com.example.myapplication.R;
 import com.google.firebase.auth.FirebaseUser;
 
@@ -30,7 +27,7 @@ public class LecturerActivity extends AppCompatActivity {
         EditText descriptionInput = findViewById(R.id.generalNotesInput);
         EditText courseNameInput = findViewById(R.id.courseNameInput);
         Button createCourseButton = findViewById(R.id.btnCreateCourse);
-        Button uploadFileButton = findViewById(R.id.btnUploadFile); // כפתור העלאת קובץ
+        //Button uploadFileButton = findViewById(R.id.btnUploadFile); // כפתור העלאת קובץ
 
         // יצירת קורס
         createCourseButton.setOnClickListener(new View.OnClickListener() {
@@ -45,7 +42,7 @@ public class LecturerActivity extends AppCompatActivity {
                         return;
                     }
                     String uid = fbUser.getUid();
-                    //TODO add files and- notes?
+                    //TODO add files?
                     database.addCourse(uid, courseName, description, new Database.AddCourseCallback(){
 
                         @Override
@@ -71,18 +68,18 @@ public class LecturerActivity extends AppCompatActivity {
         });
 
         // העלאת קובץ
-        uploadFileButton.setOnClickListener(new View.OnClickListener() {
+        /*uploadFileButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 openFilePicker();
             }
-        });
+        });*/
     }
 
     // פתיחת בוחר קבצים
-    private void openFilePicker() {
+    /*private void openFilePicker() {
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-        intent.setType("*/*"); // כל סוגי הקבצים
+        intent.setType("*/ /*"); // כל סוגי הקבצים
         startActivityForResult(intent, REQUEST_FILE_PICKER);
     }
 
@@ -98,5 +95,5 @@ public class LecturerActivity extends AppCompatActivity {
                 Toast.makeText(this, "File selection failed", Toast.LENGTH_SHORT).show();
             }
         }
-    }
+    }*/
 }

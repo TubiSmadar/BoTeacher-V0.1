@@ -11,7 +11,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.myapplication.Model.Course;
-import com.example.myapplication.Model.Database;
+import com.example.myapplication.Controller.Database;
 import com.example.myapplication.R;
 
 import java.util.ArrayList;

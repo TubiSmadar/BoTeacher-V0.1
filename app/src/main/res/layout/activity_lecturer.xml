@@ -54,14 +54,14 @@
         </LinearLayout>
 
         <!-- כפתור להעלאת קובץ -->
-        <Button
+        <!-- Button
             android:id="@+id/btnUploadFile"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Upload File"
             android:backgroundTint="#9C27B0"
             android:textColor="#FFFFFF"
-            android:layout_marginBottom="16dp" />
+            android:layout_marginBottom="16dp" / -->
 
         <!-- כפתור ליצירת קורס -->
         <Button
@@ -74,13 +74,13 @@
             android:layout_marginBottom="16dp" />
 
         <!-- רשימת הודעות הצ'אט -->
-        <ListView
+        <!--ListView
             android:id="@+id/chatListView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@drawable/rounded_background"
             android:layout_marginTop="16dp"
             android:padding="8dp"
-            android:scrollbars="vertical" />
+            android:scrollbars="vertical" / -->
     </LinearLayout>
 </ScrollView>

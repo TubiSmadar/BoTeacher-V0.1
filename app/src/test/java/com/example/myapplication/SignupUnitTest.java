@@ -4,16 +4,14 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 import android.widget.EditText;
-import android.widget.Switch;
+
 import java.lang.reflect.Field;
 
-import com.example.myapplication.Model.Database;
-import com.example.myapplication.Model.User;
+import com.example.myapplication.Controller.Database;
 import com.example.myapplication.View.SignupActivity;
 import com.google.firebase.auth.AuthResult;
 import com.google.android.gms.tasks.Task;
 
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;

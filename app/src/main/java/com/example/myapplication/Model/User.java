@@ -8,7 +8,6 @@ public class User extends FirebaseKey implements Serializable {
     private String firstname;
     private String email;
     private String lastname;
-    private String password;
     private int account_type;
 
     private String myId;
@@ -47,15 +46,6 @@ public class User extends FirebaseKey implements Serializable {
 
     public void setLastname(String lastname) {
         this.lastname = lastname;
-    }
-
-    @Exclude
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
     }
 
     public int getAccount_type() {
