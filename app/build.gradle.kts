@@ -30,6 +30,22 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+
+    packaging {
+        resources {
+            excludes.addAll(
+                listOf(
+                    "META-INF/DEPENDENCIES",
+                    "META-INF/LICENSE",
+                    "META-INF/LICENSE.txt",
+                    "META-INF/NOTICE",
+                    "META-INF/NOTICE.txt",
+                    "META-INF/ASL2.0"
+                )
+            )
+        }
+
+
 }
 
 dependencies {
@@ -37,6 +53,7 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:4.9.3")
     implementation("com.squareup.okhttp3:logging-interceptor:4.9.3") // Optional: for logging HTTP requests
     implementation ("com.google.firebase:firebase-messaging:23.2.1")
+    implementation ("com.google.auth:google-auth-library-oauth2-http:1.19.0")
 
     // Gson for JSON parsing
     implementation("com.google.code.gson:gson:2.8.9")
@@ -57,4 +74,4 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
-}
+}}
