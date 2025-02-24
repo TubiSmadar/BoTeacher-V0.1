@@ -6,6 +6,7 @@
     android:layout_height="match_parent"
     android:gravity="center"
     android:orientation="vertical"
+    android:background="@drawable/background2"
     tools:context="com.example.myapplication.View.LoginActivity">
 
     <androidx.cardview.widget.CardView
@@ -83,11 +84,11 @@
 
             <com.google.android.gms.common.SignInButton
                 android:id="@+id/googleSignInButton"
-                android:layout_width="wrap_content"
+                android:layout_width="150dp"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:layout_marginTop="20dp"
-                android:text="Sign in with Google" />
+                android:text="Log in with Google" />
 
             <TextView
                 android:id="@+id/signupRedirectButton"

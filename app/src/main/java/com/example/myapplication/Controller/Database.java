@@ -1,9 +1,9 @@
 package com.example.myapplication.Controller;
 
 import android.net.Uri;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
-
 import com.example.myapplication.Model.Course;
 import com.example.myapplication.Model.User;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -17,6 +17,7 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.SetOptions;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
@@ -118,6 +119,60 @@ public class Database {
                         callback.onUserExistsCheckFailure(task.getException());
                     }
                 });
+    }
+
+    // ✅ Ensure this method exists inside Database.java
+    public void storeToken(String userId, String token) {
+        if (userId == null || userId.isEmpty()) {
+            Log.e("FCM", "User ID is null or empty. Cannot store token.");
+            return;
+        }
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("fcmToken", token);
+
+        db.collection("Users").document(userId)
+                .set(data, SetOptions.merge())  // ✅ Ensures it doesn't overwrite other fields
+                .addOnSuccessListener(aVoid -> Log.d("FCM", "Token stored successfully for user: " + userId))
+                .addOnFailureListener(e -> Log.e("FCM", "Failed to store token", e));
+    }
+
+    public void getFcmToken(List<String> studentIds, FcmTokenCallback callback) {
+        if (studentIds == null || studentIds.isEmpty()) {
+            callback.onFailure(new Exception("No student IDs provided"));
+            return;
+        }
+
+        db.collection("Users")
+                .whereIn("myId", studentIds) // Query users by `myId` field
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful() && task.getResult() != null) {
+                        List<String> tokens = new ArrayList<>();
+                        for (QueryDocumentSnapshot document : task.getResult()) {
+                            String token = document.getString("fcmToken");
+                            if (token != null && !token.isEmpty()) {
+                                tokens.add(token);
+                            } else {
+                                Log.w("FCM", "User " + document.getId() + " has no FCM token");
+                            }
+                        }
+                        if (!tokens.isEmpty()) {
+                            callback.onTokenReceived(tokens);
+                        } else {
+                            callback.onFailure(new Exception("No valid FCM tokens found"));
+                        }
+                    } else {
+                        callback.onFailure(task.getException() != null ? task.getException() : new Exception("Failed to fetch user documents"));
+                    }
+                });
+    }
+
+
+
+    public interface FcmTokenCallback {
+        void onTokenReceived(List<String> tokens);
+        void onFailure(Exception e);
     }
 
     public interface UserExistsCallback {
@@ -459,57 +514,57 @@ public class Database {
                 });
     }
 
-    public void getFcmToken(List<String> studentIds, FcmTokenCallback callback) {
-        db.collection(USERS_TABLE)
-                .whereIn("myId", studentIds)
-                .get()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful() && task.getResult() != null) {
-                        List<String> uidList = new ArrayList<>();
-                        List<String> fcmTokens = new ArrayList<>(); //***CHANGE***
+//    public void getFcmToken(List<String> studentIds, FcmTokenCallback callback) {
+//        db.collection(USERS_TABLE)
+//                .whereIn("myId", studentIds)
+//                .get()
+//                .addOnCompleteListener(task -> {
+//                    if (task.isSuccessful() && task.getResult() != null) {
+//                        List<String> uidList = new ArrayList<>();
+//                        List<String> fcmTokens = new ArrayList<>(); //***CHANGE***
+//
+//                        for (QueryDocumentSnapshot document : task.getResult()) {
+//                            uidList.add(document.getId());
+//                        }
+//
+//                        // If no users were found, return an empty list
+//                        if (uidList.isEmpty()) { //***CHANGE***
+//                            callback.onTokenReceived(fcmTokens); // Return empty list //***CHANGE***
+//                            return; // Exit early //***CHANGE***
+//                        }
+//
+//                        // Fetch fcmToken for each uid
+//                        for (String uid : uidList) {
+//                            db.collection(USERS_TABLE).document(uid)
+//                                    .get()
+//                                    .addOnCompleteListener(innerTask -> {
+//                                        if (innerTask.isSuccessful() && innerTask.getResult() != null) {
+//                                            String token = innerTask.getResult().getString("fcmToken");
+//                                            if (token != null && !token.isEmpty()) {
+//                                                fcmTokens.add(token); //***CHANGE***
+//                                            }
+//                                        }
+//
+//                                        // If all requests are completed, return the tokens
+//                                        if (fcmTokens.size() == uidList.size()) { //***CHANGE***
+//                                            callback.onTokenReceived(fcmTokens); //***CHANGE***
+//                                        }
+//                                    })
+//                                    .addOnFailureListener(e -> {
+//                                        callback.onFailure(e); //***CHANGE***
+//                                    });
+//                        }
+//                    } else {
+//                        callback.onFailure(task.getException() != null ? task.getException() : new Exception("Failed to fetch user documents")); //***CHANGE***
+//                    }
+//                });
+//    }
 
-                        for (QueryDocumentSnapshot document : task.getResult()) {
-                            uidList.add(document.getId());
-                        }
 
-                        // If no users were found, return an empty list
-                        if (uidList.isEmpty()) { //***CHANGE***
-                            callback.onTokenReceived(fcmTokens); // Return empty list //***CHANGE***
-                            return; // Exit early //***CHANGE***
-                        }
-
-                        // Fetch fcmToken for each uid
-                        for (String uid : uidList) {
-                            db.collection(USERS_TABLE).document(uid)
-                                    .get()
-                                    .addOnCompleteListener(innerTask -> {
-                                        if (innerTask.isSuccessful() && innerTask.getResult() != null) {
-                                            String token = innerTask.getResult().getString("fcmToken");
-                                            if (token != null && !token.isEmpty()) {
-                                                fcmTokens.add(token); //***CHANGE***
-                                            }
-                                        }
-
-                                        // If all requests are completed, return the tokens
-                                        if (fcmTokens.size() == uidList.size()) { //***CHANGE***
-                                            callback.onTokenReceived(fcmTokens); //***CHANGE***
-                                        }
-                                    })
-                                    .addOnFailureListener(e -> {
-                                        callback.onFailure(e); //***CHANGE***
-                                    });
-                        }
-                    } else {
-                        callback.onFailure(task.getException() != null ? task.getException() : new Exception("Failed to fetch user documents")); //***CHANGE***
-                    }
-                });
-    }
-
-
-    public interface FcmTokenCallback {
-        void onTokenReceived(List<String> tokens);
-        void onFailure(Exception e);
-    }
+//    public interface FcmTokenCallback {
+//        void onTokenReceived(List<String> tokens);
+//        void onFailure(Exception e);
+//    }
 
     public interface FcmUpdateCallback {
         void onSuccess();
@@ -552,5 +607,7 @@ public class Database {
         void onSuccess(ArrayList<Course> courses);
         void onFailure(Exception e);
     }
+
+
 
 }

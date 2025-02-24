@@ -2,36 +2,25 @@ package com.example.myapplication.Model;
 
 import android.util.Log;
 
-import androidx.annotation.NonNull;
 import com.example.myapplication.Controller.Database;
-
-import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingService;
 
 public class MyFirebaseMessagingService extends FirebaseMessagingService {
-
-    private Database database;
+private Database database = new Database();
     @Override
-    public void onNewToken(@NonNull String token) {
+    public void onNewToken(String token) {
         super.onNewToken(token);
-        Log.d("FCM", "Refreshed token: " + token);
+        Log.d("FCM", "New Token: " + token);
 
-        database = new Database();
+        // Send token to your server
+        sendTokenToServer(token);
 
-        // Get the current user ID
-        String userId = FirebaseAuth.getInstance().getUid();
-        if (userId != null) {
-            database.updateFcmToken(userId, token, new Database.FcmUpdateCallback() {
-                @Override
-                public void onSuccess() {
 
-                }
+    }
 
-                @Override
-                public void onFailure(Exception e) {
-
-                }
-            });
-        }
+    private void sendTokenToServer(String token) {
+        // TODO: Implement API call to send token to your backend database
+        Log.d("FCM", "Token sent to server: " + token);
     }
 }

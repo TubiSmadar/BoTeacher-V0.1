@@ -28,6 +28,7 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 public class LoginActivity extends AppCompatActivity {
     TextView forgotPasswordButton, signupRedirectButton;
@@ -66,6 +67,27 @@ public class LoginActivity extends AppCompatActivity {
         findViews();
         initVars();
         setupGoogleSignIn();
+
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            String userId = currentUser.getUid(); // Get logged-in user ID
+
+            FirebaseMessaging.getInstance().getToken()
+                    .addOnCompleteListener(task -> {
+                        if (!task.isSuccessful()) {
+                            Log.w("FCM", "Fetching FCM token failed", task.getException());
+                            return;
+                        }
+
+                        String token = task.getResult();
+                        Log.d("FCM", "FCM Token: " + token);
+
+                        // Store the token in Firestore
+                        sendTokenToServer(userId, token);
+                    });
+        } else {
+            Log.w("FCM", "No authenticated user. Token storage skipped.");
+        }
     }
 
     private void findViews() {
@@ -85,7 +107,46 @@ public class LoginActivity extends AppCompatActivity {
                 if (task.isSuccessful()) {
                     FirebaseUser fbUser = database.getCurrentUser();
                     if (fbUser != null) {
-                        handleUserLogin(fbUser);
+                        String uid = fbUser.getUid();
+
+                        // ✅ Fetch user data before storing the token
+                        database.fetchUserData(uid, new Database.UserFetchCallback() {
+                            @Override
+                            public void onSuccess(User user) {
+                                Toast.makeText(LoginActivity.this, "Welcome " + user.getFirstname(), Toast.LENGTH_SHORT).show();
+
+                                // ✅ Fetch and store FCM Token AFTER login
+                                FirebaseMessaging.getInstance().getToken()
+                                        .addOnCompleteListener(task -> {
+                                            if (!task.isSuccessful()) {
+                                                Log.w("FCM", "Fetching FCM token failed", task.getException());
+                                                return;
+                                            }
+                                            String token = task.getResult();
+                                            Log.d("FCM", "FCM Token: " + token);
+
+                                            // ✅ Store token AFTER login is complete
+                                            database.storeToken(uid, token);
+                                        });
+
+                                // ✅ Redirect user AFTER everything is done
+                                if (user.getAccount_type() == 1) {
+                                    Intent intent = new Intent(LoginActivity.this, LecturerCoursesActivity.class);
+                                    startActivity(intent);
+                                } else if (user.getAccount_type() == 0) {
+                                    Intent intent = new Intent(LoginActivity.this, StudentActivity.class);
+                                    startActivity(intent);
+                                } else {
+                                    Toast.makeText(LoginActivity.this, "Unknown account type.", Toast.LENGTH_SHORT).show();
+                                }
+                                finish();
+                            }
+
+                            @Override
+                            public void onFailure(Exception e) {
+                                Toast.makeText(LoginActivity.this, "Failed to fetch user data: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                            }
+                        });
                     } else {
                         Toast.makeText(LoginActivity.this, "User is null after login.", Toast.LENGTH_SHORT).show();
                     }
@@ -96,9 +157,9 @@ public class LoginActivity extends AppCompatActivity {
 
             @Override
             public void onCreateAccountComplete(boolean status, String err) {
+                // Not used here
             }
         });
-
         signupRedirectButton.setOnClickListener(view -> {
             Intent intent = new Intent(LoginActivity.this, SignupActivity.class);
             startActivity(intent);
@@ -180,4 +241,19 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
     }
+
+    private void sendTokenToServer(String userId, String token) {
+        if (userId == null || userId.isEmpty()) {
+            Log.e("FCM", "User ID is null or empty. Cannot store token.");
+            return;
+        }
+
+        if (database != null) {
+            database.storeToken(userId, token);  // ✅ Store the token using the Database class
+            Log.d("FCM", "Token sent to server for user: " + userId);
+        } else {
+            Log.e("FCM", "Database instance is null. Cannot store token.");
+        }
+    }
+
 }

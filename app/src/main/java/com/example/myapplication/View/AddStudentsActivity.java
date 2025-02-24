@@ -2,6 +2,7 @@ package com.example.myapplication.View;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -13,10 +14,12 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.myapplication.Model.Course;
 import com.example.myapplication.Controller.Database;
+import com.example.myapplication.Model.FcmService;
 import com.example.myapplication.R;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import okhttp3.Call;
@@ -99,7 +102,8 @@ public class AddStudentsActivity extends AppCompatActivity {
                             public void onTokenReceived(List<String> tokens) {
                                 // Send push notification
                                 for(String token : tokens) {
-                                    sendPushNotification(token, "Added to Course", "You have been added to " + course.getName());
+                                    System.out.println("im sending to token "+ token);
+                                    FcmService.sendPushNotification(Collections.singletonList(token), "Added to Course", "You have been added to " + course.getName());
                                 }
                             }
 
@@ -133,41 +137,4 @@ public class AddStudentsActivity extends AppCompatActivity {
         });
     }
 
-    private void sendPushNotification(String token, String title, String message) {
-        OkHttpClient client = new OkHttpClient();
-        String jsonBody = "{"
-                + "\"to\": \"" + token + "\","
-                + "\"notification\": {"
-                + "\"title\": \"" + title + "\","
-                + "\"body\": \"" + message + "\""
-                + "}"
-                + "}";
-
-        RequestBody body = RequestBody.create(jsonBody, MediaType.parse("application/json"));
-        Request request = new Request.Builder()
-                .url("https://fcm.googleapis.com/fcm/send")
-                .post(body)
-                .addHeader("Authorization", "key=YOUR_SERVER_KEY")
-                .addHeader("Content-Type", "application/json")
-                .build();
-
-        client.newCall(request).enqueue(new Callback() {
-            @Override
-            public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                e.printStackTrace();
-            }
-
-            @Override
-            public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
-                if (response.isSuccessful()) {
-                    //Log.d("Notification", "Notification sent successfully");
-                    Toast.makeText(AddStudentsActivity.this,  "Notification sent successfully", Toast.LENGTH_SHORT).show();
-                } else {
-                    //Log.e("Notification", "Failed to send notification: " + response.message());
-                    Toast.makeText(AddStudentsActivity.this,  "Failed to send notification: " + response.message(), Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
     }
-
-}
